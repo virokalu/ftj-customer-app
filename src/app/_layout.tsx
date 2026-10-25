@@ -1,0 +1,67 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Stack } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import { useState } from "react";
+import { ActivityIndicator } from "react-native";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+
+import { Centered } from "@/components/ui";
+import { AuthProvider, useAuth } from "@/features/auth/auth-context";
+import { ApiError } from "@/lib/api/client";
+import { useTheme } from "@/theme/theme";
+
+export default function RootLayout() {
+  // Created once per app run (useState initializer), not on every render.
+  const [queryClient] = useState(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            staleTime: 30_000,
+            // Don't retry auth/permission/not-found errors: retrying cannot fix them.
+            retry: (count, error) =>
+              !(error instanceof ApiError && [401, 403, 404].includes(error.status)) && count < 2,
+          },
+        },
+      }),
+  );
+
+  return (
+    <SafeAreaProvider>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <StatusBar style="auto" />
+          <RootNavigator />
+        </AuthProvider>
+      </QueryClientProvider>
+    </SafeAreaProvider>
+  );
+}
+
+function RootNavigator() {
+  const { isLoading, isSignedIn } = useAuth();
+  const t = useTheme();
+
+  if (isLoading) {
+    return (
+      <Centered>
+        <ActivityIndicator color={t.accent} />
+      </Centered>
+    );
+  }
+
+  // Route guards: Expo Router only registers the screens whose `guard` is true.
+  // Signed out => only /sign-in exists. Signed in => only the app screens exist.
+  // Signing in/out flips the guard and the router moves the user automatically.
+  return (
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Protected guard={!isSignedIn}>
+        <Stack.Screen name="sign-in" />
+      </Stack.Protected>
+      <Stack.Protected guard={isSignedIn}>
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="vehicle/[id]" options={{ headerShown: true, title: "Vehicle" }} />
+      </Stack.Protected>
+    </Stack>
+  );
+}
