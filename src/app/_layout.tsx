@@ -51,11 +51,13 @@ function RootNavigator() {
   }
 
   // Route guards: Expo Router only registers the screens whose `guard` is true.
-  // Signed out => only /sign-in exists. Signed in => only the app screens exist.
-  // Signing in/out flips the guard and the router moves the user automatically.
+  // Signed out => only /welcome and /sign-in exist. Signed in => only the app screens exist.
+  // Signing in/out flips the guard and the router moves the user automatically
+  // (to the first available screen, so `welcome` must stay first in its group).
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Protected guard={!isSignedIn}>
+        <Stack.Screen name="welcome" />
         <Stack.Screen name="sign-in" />
       </Stack.Protected>
       <Stack.Protected guard={isSignedIn}>

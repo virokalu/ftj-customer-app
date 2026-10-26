@@ -10,8 +10,12 @@ const light = {
   text: "#18181B",
   textMuted: "#71717A",
   accent: "#B3122B", // crimson
+  accentSoft: "#FBE7EA", // tinted backdrop behind accent icons
   onAccent: "#FFFFFF",
   danger: "#B91C1C",
+  hero: "#2B2B2D", // dark panel at the top of the welcome screen
+  onHero: "#FFFFFF",
+  onHeroMuted: "#C9C9CE",
 } as const;
 
 const dark = {
@@ -21,8 +25,12 @@ const dark = {
   text: "#F4F4F5",
   textMuted: "#A1A1AA",
   accent: "#E0364F",
+  accentSoft: "#3A1A20",
   onAccent: "#FFFFFF",
   danger: "#F87171",
+  hero: "#1F1F23",
+  onHero: "#FFFFFF",
+  onHeroMuted: "#A1A1AA",
 } as const;
 
 export type Theme = { [K in keyof typeof light]: string };
