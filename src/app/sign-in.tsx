@@ -1,9 +1,12 @@
 import { router } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import { SymbolView, type SymbolViewProps } from "expo-symbols";
 import { useRef, useState, type ComponentRef, type ReactNode } from "react";
-import { KeyboardAvoidingView, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { Linking, Pressable, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { AppText, Button, Screen } from "@/components/ui";
+import { Brand, HERO_HEIGHT_RATIO, RouteArc } from "@/components/route-arc";
+import { AppText, Button } from "@/components/ui";
 import { useAuth } from "@/features/auth/auth-context";
 import { ApiError } from "@/lib/api/client";
 import { config } from "@/lib/config";
@@ -13,6 +16,8 @@ import { radius, spacing, useTheme } from "@/theme/theme";
 // Layout follows 1-getting-started.png, "Sign in".
 export default function SignInScreen() {
   const t = useTheme();
+  const insets = useSafeAreaInsets();
+  const { height } = useWindowDimensions();
   const { signIn } = useAuth();
   const passwordRef = useRef<ComponentRef<typeof TextInput>>(null);
   const [email, setEmail] = useState("");
@@ -46,36 +51,41 @@ export default function SignInScreen() {
   const inputStyle = [styles.input, { color: t.text }];
 
   return (
-    <Screen>
-      <Pressable
-        onPress={goBack}
-        accessibilityRole="button"
-        accessibilityLabel="Back"
-        hitSlop={12}
-        style={styles.back}
+    <View style={{ flex: 1, backgroundColor: t.background }}>
+      {/* Light icons over the dark band, whatever the phone's theme. */}
+      <StatusBar style="light" />
+      {/* One scroll view for band + form; iOS scrolls the focused field above the keyboard. */}
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        automaticallyAdjustKeyboardInsets
+        bounces={false}
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: insets.bottom + spacing.md }}
       >
-        <SymbolView
-          name={{ ios: "chevron.left", android: "arrow_back_ios", web: "arrow_back_ios" }}
-          size={20}
-          tintColor={t.accent}
-        />
-      </Pressable>
-
-      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
-        {/* Back button stays pinned at the top; the form is centred in the space below it
-            (and still scrolls when the keyboard leaves too little room). */}
-        <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.form}>
-          <View style={[styles.logo, { backgroundColor: t.hero }]}>
-            <Text style={[styles.logoMark, { color: t.accent }]}>/F</Text>
+        {/* Same hero as Welcome (same proportions, same route) so the two screens read as
+            one flow. Both use HERO_HEIGHT_RATIO so the panels end at the same line. */}
+        <View style={[styles.band, { backgroundColor: t.hero, paddingTop: insets.top + spacing.sm, minHeight: height * HERO_HEIGHT_RATIO }]}>
+          <View style={styles.bandTop}>
+            <Pressable onPress={goBack} accessibilityRole="button" accessibilityLabel="Back" hitSlop={12}>
+              <SymbolView
+                name={{ ios: "chevron.left", android: "arrow_back_ios", web: "arrow_back_ios" }}
+                size={20}
+                tintColor={t.onHero}
+              />
+            </Pressable>
+            <Brand />
           </View>
 
-          <AppText style={styles.title} accessibilityRole="header">
-            Welcome back
-          </AppText>
-          <AppText muted style={{ fontSize: 15 }}>
-            Sign in to see your vehicles.
-          </AppText>
+          <View style={styles.routeArea}>
+            <RouteArc />
+          </View>
 
+          <Text style={[styles.title, { color: t.onHero }]} accessibilityRole="header">
+            Welcome back
+          </Text>
+          <Text style={[styles.subtitle, { color: t.onHeroMuted }]}>Sign in to see your vehicles.</Text>
+        </View>
+
+        <View style={styles.form}>
           <View style={[styles.fields, { backgroundColor: t.surface, borderColor: t.border }]}>
             <Field icon={{ ios: "envelope", android: "mail", web: "mail" }} label="Email">
               <TextInput
@@ -136,13 +146,25 @@ export default function SignInScreen() {
           {/* TODO: "Forgot password?" sheet (needs the reset endpoints) and
               "Continue with phone number" (phone OTP is still an open decision). */}
 
-          {error ? <AppText style={{ color: t.danger, marginTop: spacing.md }}>{error}</AppText> : null}
+          {error ? (
+            <View style={[styles.error, { backgroundColor: t.accentSoft }]} accessibilityRole="alert">
+              <SymbolView
+                name={{ ios: "exclamationmark.circle.fill", android: "error", web: "error" }}
+                size={16}
+                tintColor={t.danger}
+              />
+              <AppText style={{ flex: 1, color: t.danger, fontSize: 14 }}>{error}</AppText>
+            </View>
+          ) : null}
 
-          <View style={{ marginTop: spacing.lg }}>
+          <View style={{ marginTop: spacing.md + spacing.xs }}>
             <Button label="Sign in" onPress={onSubmit} loading={submitting} />
           </View>
 
-          <AppText muted style={{ textAlign: "center", fontSize: 14, marginTop: spacing.lg }}>
+          {/* Pushes the footer to the bottom, like the buttons on Welcome. */}
+          <View style={styles.footerSpacer} />
+
+          <AppText muted style={{ textAlign: "center", fontSize: 14 }}>
             New to CargoDev?{" "}
             <Text
               style={{ color: t.accent, fontWeight: "600" }}
@@ -152,9 +174,9 @@ export default function SignInScreen() {
               Create an account
             </Text>
           </AppText>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </Screen>
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
@@ -186,20 +208,29 @@ function Field({
 }
 
 const styles = StyleSheet.create({
-  back: { alignSelf: "flex-start", paddingVertical: spacing.sm, marginTop: spacing.sm },
-  // Extra bottom padding sits the form slightly above true centre, which reads as centred.
-  form: { flexGrow: 1, justifyContent: "center", paddingTop: spacing.lg, paddingBottom: spacing.xl * 3 },
-  logo: {
-    width: 52,
-    height: 52,
-    borderRadius: radius.md,
-    alignItems: "center",
-    justifyContent: "center",
+  // Band and form share one left edge (spacing.lg), like the Welcome screen.
+  band: {
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.xl,
+    borderBottomLeftRadius: radius.lg * 1.5,
+    borderBottomRightRadius: radius.lg * 1.5,
   },
-  logoMark: { fontSize: 24, fontWeight: "900", fontStyle: "italic" },
-  title: { fontSize: 30, fontWeight: "800", letterSpacing: -0.5, marginTop: spacing.lg, marginBottom: spacing.xs },
+  bandTop: { flexDirection: "row", alignItems: "center", gap: spacing.md, paddingVertical: spacing.xs },
+  routeArea: { flexGrow: 1, justifyContent: "center", paddingVertical: spacing.lg },
+  title: { fontSize: 30, fontWeight: "800", lineHeight: 36, letterSpacing: -0.5 },
+  subtitle: { fontSize: 15, lineHeight: 21, marginTop: spacing.sm },
+  form: { flexGrow: 1, paddingHorizontal: spacing.lg, paddingTop: spacing.lg },
+  error: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    marginTop: spacing.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm + 2,
+    borderRadius: radius.md,
+  },
+  footerSpacer: { flexGrow: 1, minHeight: spacing.lg },
   fields: {
-    marginTop: spacing.lg,
     borderRadius: radius.md,
     borderWidth: StyleSheet.hairlineWidth,
   },
