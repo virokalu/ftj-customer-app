@@ -18,9 +18,9 @@ export default function RootLayout() {
         defaultOptions: {
           queries: {
             staleTime: 30_000,
-            // Don't retry auth/permission/not-found errors: retrying cannot fix them.
+            // Don't retry validation/auth/permission/not-found/rate-limit errors: retrying cannot fix them.
             retry: (count, error) =>
-              !(error instanceof ApiError && [401, 403, 404].includes(error.status)) && count < 2,
+              !(error instanceof ApiError && [400, 401, 403, 404, 429].includes(error.status)) && count < 2,
           },
         },
       }),

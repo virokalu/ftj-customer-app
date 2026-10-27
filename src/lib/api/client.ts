@@ -1,4 +1,4 @@
-import type { z } from "zod";
+import { z } from "zod";
 
 import { clearTokens, loadTokens, saveTokens } from "@/features/auth/token-storage";
 import { config } from "@/lib/config";
@@ -10,11 +10,26 @@ export class ApiError extends Error {
   constructor(
     public readonly status: number,
     message: string,
+    /** Backend error code, e.g. "VALIDATION", "FORBIDDEN", "RATE_LIMITED". */
+    public readonly code?: string,
+    /** One message per field (dot paths), for form validation errors. */
+    public readonly fieldErrors?: Record<string, string>,
   ) {
     super(message);
     this.name = "ApiError";
   }
 }
+
+// The backend wraps every success as { data } and every failure as
+// { error: { code, message, fieldErrors? } } (CUSTOMER_API.md 2.2).
+const successEnvelope = z.object({ data: z.unknown() });
+const errorEnvelope = z.object({
+  error: z.object({
+    code: z.string(),
+    message: z.string(),
+    fieldErrors: z.record(z.string(), z.string()).optional(),
+  }),
+});
 
 // The auth provider registers this so the client can tell the UI "you are signed out"
 // without importing React code (keeps the dependency pointing one way).
@@ -62,8 +77,9 @@ function refreshSession(): Promise<boolean> {
         { method: "POST", body: { refreshToken: tokens.refreshToken }, auth: false },
         null,
       );
+      // A dead, expired or reused refresh token is 403, not 401: any non-200 means signed out.
       if (res.status !== 200) return false;
-      await saveTokens(authTokens.parse(res.data));
+      await saveTokens(authTokens.parse(successEnvelope.parse(res.data).data));
       return true;
     } catch {
       return false;
@@ -101,11 +117,10 @@ export async function request<S extends z.ZodType>(
   }
 
   if (res.status < 200 || res.status >= 300) {
-    const message =
-      typeof res.data === "object" && res.data !== null && "message" in res.data
-        ? String((res.data as { message: unknown }).message)
-        : `Request failed (${res.status})`;
-    throw new ApiError(res.status, message);
+    const parsed = errorEnvelope.safeParse(res.data);
+    if (!parsed.success) throw new ApiError(res.status, `Request failed (${res.status})`);
+    const { code, message, fieldErrors } = parsed.data.error;
+    throw new ApiError(res.status, message, code, fieldErrors);
   }
-  return schema.parse(res.data);
+  return schema.parse(successEnvelope.parse(res.data).data);
 }

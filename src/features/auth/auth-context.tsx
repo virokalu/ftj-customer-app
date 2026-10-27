@@ -49,7 +49,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = useCallback(async () => {
     // Best effort: tell the server to revoke the session, but sign out locally regardless.
-    await api.logout().catch(() => undefined);
+    const tokens = await loadTokens();
+    if (tokens) await api.logout(tokens.refreshToken).catch(() => undefined);
     await clearTokens();
     resetLocalSession();
   }, [resetLocalSession]);

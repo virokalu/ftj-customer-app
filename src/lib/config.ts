@@ -9,9 +9,9 @@ if (!apiUrl && !__DEV__) {
 }
 
 export const config = {
-  apiUrl: apiUrl ?? "http://localhost:4000/customer/v1",
-  // The backend does not exist yet, so mocks are ON by default in development.
-  // Set EXPO_PUBLIC_USE_MOCKS=false once the real API is running.
+  apiUrl: apiUrl ?? "http://localhost:4000/api/customer/v1",
+  // Only auth and /me exist in the backend so far, so mocks are ON by default in development.
+  // Set EXPO_PUBLIC_USE_MOCKS=false to test sign-in against a locally running cargodev-api.
   useMocks: process.env.EXPO_PUBLIC_USE_MOCKS
     ? process.env.EXPO_PUBLIC_USE_MOCKS === "true"
     : __DEV__,

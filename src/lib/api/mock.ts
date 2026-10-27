@@ -1,11 +1,27 @@
 // Fake backend for development, so screens can be built before the real API exists.
-// Same shape as the real endpoints; deleted from use by setting EXPO_PUBLIC_USE_MOCKS=false.
+// Mirrors cargodev-api (doc/api/CUSTOMER_API.md): successes are { data }, errors are
+// { error: { code, message } }, with the same status codes. Turn off with EXPO_PUBLIC_USE_MOCKS=false.
 // Demo login: any email + password "demo1234".
 
 type MockResponse = { status: number; data: unknown };
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+const ok = (data: unknown, status = 200): MockResponse => ({ status, data: { data } });
+const fail = (status: number, code: string, message: string): MockResponse => ({
+  status,
+  data: { error: { code, message } },
+});
+
+const session = () => ({
+  accessToken: "mock-access",
+  accessTokenExpiresIn: 900,
+  refreshToken: "mock-refresh",
+  refreshTokenExpiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+  user: { id: "c1", name: "Demo Customer", email: "demo@example.com" },
+});
+
+// /vehicles and /stock are NOT IMPLEMENTED in the backend yet; these shapes are our guess.
 const vehicles = [
   {
     id: "v1",
@@ -58,21 +74,30 @@ export async function mockRequest(
 
   if (path === "/auth/login" && method === "POST") {
     const { password } = (body ?? {}) as { password?: string };
-    if (password !== "demo1234") return { status: 401, data: { message: "Invalid email or password" } };
-    return { status: 200, data: { accessToken: "mock-access", refreshToken: "mock-refresh" } };
+    if (password !== "demo1234") return fail(400, "VALIDATION", "Invalid email or password.");
+    return ok(session());
   }
-  if (path === "/auth/refresh" && method === "POST") {
-    return { status: 200, data: { accessToken: "mock-access", refreshToken: "mock-refresh" } };
-  }
-  if (path === "/auth/logout" && method === "POST") return { status: 204, data: null };
+  if (path === "/auth/refresh" && method === "POST") return ok(session());
+  if (path === "/auth/logout" && method === "POST") return ok({ loggedOut: true });
 
-  if (!accessToken) return { status: 401, data: { message: "Unauthorized" } };
+  if (!accessToken) return fail(401, "UNAUTHENTICATED", "Authentication required.");
 
   if (path === "/me") {
-    return { status: 200, data: { id: "c1", name: "Demo Customer", email: "demo@example.com", companyName: "Demo Motors Ltd" } };
+    return ok({
+      id: "c1",
+      name: "Demo Customer",
+      email: "demo@example.com",
+      phone: null,
+      companyName: "Demo Motors Ltd",
+      country: "Sri Lanka",
+      destinationPort: "Colombo",
+      language: "en",
+      theme: null,
+      memberSince: "2026-10-01T09:00:00.000Z",
+    });
   }
-  if (path === "/vehicles") return { status: 200, data: { items: vehicles } };
-  if (path === "/stock") return { status: 200, data: { items: stock } };
+  if (path === "/vehicles") return ok({ items: vehicles });
+  if (path === "/stock") return ok({ items: stock });
 
-  return { status: 404, data: { message: "Not found" } };
+  return fail(404, "NOT_FOUND", "Route not found.");
 }

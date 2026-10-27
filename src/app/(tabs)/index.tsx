@@ -25,6 +25,6 @@ export default function HomeScreen() {
         ))
       )}
       {/* TODO: swipeable cards with the ship route, new updates, bell (alerts), agent card */}
-    </Screen>
+fff    </Screen>
   );
 }

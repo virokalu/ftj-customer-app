@@ -35,11 +35,20 @@ export default function SignInScreen() {
       await signIn(email, password);
       // No navigation call here: the route guard in _layout.tsx reacts to isSignedIn.
     } catch (e) {
-      // Same wording for wrong email and wrong password, so nobody can probe which emails exist.
-      setError(e instanceof ApiError && e.status === 401 ? "Invalid email or password." : "Something went wrong. Please try again.");
+      // The backend answers 400 for any bad credentials (same wording for wrong email and wrong
+      // password, so nobody can probe which emails exist), 403 when locked, 429 when rate limited.
+      setError(signInErrorMessage(e));
     } finally {
       setSubmitting(false);
     }
+  }
+
+  function signInErrorMessage(e: unknown): string {
+    if (!(e instanceof ApiError)) return "Something went wrong. Please try again.";
+    if (e.status === 400) return "Invalid email or password.";
+    if (e.status === 403) return "Too many failed attempts. Your account is locked for a few minutes.";
+    if (e.status === 429) return "Too many attempts. Please wait a moment and try again.";
+    return "Something went wrong. Please try again.";
   }
 
   function goBack() {
