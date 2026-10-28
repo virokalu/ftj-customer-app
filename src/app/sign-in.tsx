@@ -2,7 +2,7 @@ import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { SymbolView, type SymbolViewProps } from "expo-symbols";
 import { useRef, useState, type ComponentRef, type ReactNode } from "react";
-import { Linking, Pressable, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View } from "react-native";
+import { Linking, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import Animated, {
   FadeIn,
   FadeInUp,
@@ -14,7 +14,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { Brand, HERO_HEIGHT_RATIO, RouteArc } from "@/components/route-arc";
+import { AuthHero } from "@/components/auth-hero";
 import { AppText, Button } from "@/components/ui";
 import { WordReveal } from "@/components/word-reveal";
 import { useFirstVisit } from "@/lib/first-visit";
@@ -30,9 +30,18 @@ const intro = {
   titleStagger: 60,
   subtitle: 450,
   fields: 500,
+  steps: 550,
+  stepStagger: 80,
   button: 600,
   footer: 700,
 };
+
+// What the user follows once signed in, shown as pills in the hero.
+const journeySteps: { icon: SymbolViewProps["name"]; label: string }[] = [
+  { icon: { ios: "checkmark.circle.fill", android: "check_circle", web: "check_circle" }, label: "Booked" },
+  { icon: { ios: "ferry.fill", android: "directions_boat", web: "directions_boat" }, label: "On the ship" },
+  { icon: { ios: "flag.fill", android: "flag", web: "flag" }, label: "Arrived" },
+];
 
 // Sign-in only. Accounts are created on the FTJ website (decision, 19 Oct 2026).
 // Layout follows 1-getting-started.png, "Sign in".
@@ -41,7 +50,6 @@ export default function SignInScreen() {
   const insets = useSafeAreaInsets();
   // The intro plays the first time this screen opens in an app run, not on every visit.
   const firstVisit = useFirstVisit("sign-in");
-  const { height } = useWindowDimensions();
   const { signIn } = useAuth();
   const passwordRef = useRef<ComponentRef<typeof TextInput>>(null);
   const [email, setEmail] = useState("");
@@ -105,24 +113,8 @@ export default function SignInScreen() {
         bounces={false}
         contentContainerStyle={{ flexGrow: 1, paddingBottom: insets.bottom + spacing.md }}
       >
-        {/* Same hero as Welcome (same proportions, same route) so the two screens read as
-            one flow. Both use HERO_HEIGHT_RATIO so the panels end at the same line. */}
-        <View style={[styles.band, { backgroundColor: t.hero, paddingTop: insets.top + spacing.sm, minHeight: height * HERO_HEIGHT_RATIO }]}>
-          <View style={styles.bandTop}>
-            <Pressable onPress={goBack} accessibilityRole="button" accessibilityLabel="Back" hitSlop={12}>
-              <SymbolView
-                name={{ ios: "chevron.left", android: "arrow_back_ios", web: "arrow_back_ios" }}
-                size={20}
-                tintColor={t.onHero}
-              />
-            </Pressable>
-            <Brand />
-          </View>
-
-          <View style={styles.routeArea}>
-            <RouteArc animated={firstVisit} />
-          </View>
-
+        {/* Same hero as Welcome (same height too), so the panel stays put when the screens cross-fade. */}
+        <AuthHero routeAnimated={firstVisit}>
           <WordReveal
             text="Welcome back"
             style={[styles.title, { color: t.onHero }]}
@@ -137,7 +129,22 @@ export default function SignInScreen() {
           >
             Sign in to see your vehicles.
           </Animated.Text>
-        </View>
+          {/* What the user follows once signed in, right under the text it belongs to. */}
+          <View style={styles.steps}>
+            {journeySteps.map((s, i) => (
+              <Animated.View
+                key={s.label}
+                entering={firstVisit ? FadeInUp.delay(intro.steps + i * intro.stepStagger).duration(400) : undefined}
+                style={[styles.step, { backgroundColor: t.heroChip }]}
+              >
+                <SymbolView name={s.icon} size={15} tintColor={i === journeySteps.length - 1 ? t.accent : t.onHero} />
+                <AppText numberOfLines={1} style={{ color: t.onHero, fontSize: 13, fontWeight: "500" }}>
+                  {s.label}
+                </AppText>
+              </Animated.View>
+            ))}
+          </View>
+        </AuthHero>
 
         <View style={styles.form}>
           {/* Outer view slides in once; inner view shakes on errors (two separate transforms). */}
@@ -224,6 +231,22 @@ export default function SignInScreen() {
 
           <Animated.View entering={firstVisit ? FadeIn.delay(intro.button).duration(400) : undefined} style={{ marginTop: spacing.md + spacing.xs }}>
             <Button label="Sign in" onPress={onSubmit} loading={submitting} />
+            <Pressable
+              onPress={goBack}
+              accessibilityRole="button"
+              accessibilityLabel="Back to welcome"
+              hitSlop={8}
+              style={styles.back}
+            >
+              <SymbolView
+                name={{ ios: "chevron.left", android: "arrow_back_ios_new", web: "arrow_back_ios_new" }}
+                size={12}
+                tintColor={t.textMuted}
+              />
+              <AppText muted style={{ fontSize: 14, fontWeight: "500" }}>
+                Back to welcome
+              </AppText>
+            </Pressable>
           </Animated.View>
 
           {/* Pushes the footer to the bottom, like the buttons on Welcome. */}
@@ -231,7 +254,7 @@ export default function SignInScreen() {
 
           <Animated.View entering={firstVisit ? FadeIn.delay(intro.footer).duration(400) : undefined}>
             <AppText muted style={{ textAlign: "center", fontSize: 14 }}>
-              New to CargoDev?{" "}
+              New to FTJ Exports?{" "}
               <Text
                 style={{ color: t.accent, fontWeight: "600" }}
                 accessibilityRole="link"
@@ -240,6 +263,13 @@ export default function SignInScreen() {
                 Create an account
               </Text>
             </AppText>
+            {/* Developer credit: CargoDev builds FTJ's apps; this is FTJ's customer app. */}
+            <View style={styles.credit}>
+              <SymbolView name={{ ios: "bolt.fill", android: "bolt", web: "bolt" }} size={12} tintColor={t.accent} />
+              <AppText muted style={{ fontSize: 12 }}>
+                Powered by <AppText style={{ fontSize: 12, fontWeight: "600" }}>CargoDev</AppText>
+              </AppText>
+            </View>
           </Animated.View>
         </View>
       </ScrollView>
@@ -275,15 +305,33 @@ function Field({
 }
 
 const styles = StyleSheet.create({
-  // Band and form share one left edge (spacing.lg), like the Welcome screen.
-  band: {
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.xl,
-    borderBottomLeftRadius: radius.lg * 1.5,
-    borderBottomRightRadius: radius.lg * 1.5,
+  credit: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: spacing.xs + 2,
+    marginTop: spacing.md,
   },
-  bandTop: { flexDirection: "row", alignItems: "center", gap: spacing.md, paddingVertical: spacing.xs },
-  routeArea: { flexGrow: 1, justifyContent: "center", paddingVertical: spacing.lg },
+  // One row: the three pills share the width equally, so they always fit side by side.
+  steps: { flexDirection: "row", gap: spacing.sm, marginTop: spacing.md + spacing.xs },
+  step: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: spacing.xs + 2,
+    paddingHorizontal: spacing.xs + 2,
+    paddingVertical: spacing.sm + 2,
+    borderRadius: 999,
+  },
+  back: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "center",
+    gap: spacing.xs,
+    marginTop: spacing.md,
+    paddingVertical: spacing.xs,
+  },
   title: { fontSize: 30, fontWeight: "800", lineHeight: 36, letterSpacing: -0.5 },
   subtitle: { fontSize: 15, lineHeight: 21, marginTop: spacing.sm },
   form: { flexGrow: 1, paddingHorizontal: spacing.lg, paddingTop: spacing.lg },

@@ -18,18 +18,15 @@ import Svg, { Circle, Path } from "react-native-svg";
 import { spacing, useTheme } from "@/theme/theme";
 
 /**
- * Share of the screen height the dark hero panel takes on Welcome and Sign in, so both
- * screens' panels end at the same line. Content can still make it taller on small phones.
+ * "/F FTJ Exports" brand row, for use on the dark hero panels (Welcome, Sign in).
+ * This is FTJ's customer app; CargoDev (the developer) is credited only on Sign in.
  */
-export const HERO_HEIGHT_RATIO = 0.55;
-
-/** "/F CargoDev" brand row, for use on the dark hero panels (Welcome, Sign in). */
 export function Brand() {
   const t = useTheme();
   return (
     <View style={styles.brand}>
       <Text style={[styles.brandMark, { color: t.accent }]}>/F</Text>
-      <Text style={[styles.brandName, { color: t.onHero }]}>CargoDev</Text>
+      <Text style={[styles.brandName, { color: t.onHero }]}>FTJ Exports</Text>
     </View>
   );
 }

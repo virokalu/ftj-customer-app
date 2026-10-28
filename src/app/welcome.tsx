@@ -1,11 +1,11 @@
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { SymbolView, type SymbolViewProps } from "expo-symbols";
-import { Linking, ScrollView, StyleSheet, useWindowDimensions, View } from "react-native";
+import { Linking, ScrollView, StyleSheet, View } from "react-native";
 import Animated, { FadeIn, FadeInDown, FadeInUp } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { Brand, HERO_HEIGHT_RATIO, RouteArc } from "@/components/route-arc";
+import { AuthHero } from "@/components/auth-hero";
 import { AppText, Button } from "@/components/ui";
 import { WordReveal } from "@/components/word-reveal";
 import { useFirstVisit } from "@/lib/first-visit";
@@ -51,7 +51,6 @@ export default function WelcomeScreen() {
   const insets = useSafeAreaInsets();
   // The intro plays the first time this screen opens in an app run, not on every visit.
   const firstVisit = useFirstVisit("welcome");
-  const { height } = useWindowDimensions();
 
   return (
     <View style={{ flex: 1, backgroundColor: t.background }}>
@@ -61,17 +60,11 @@ export default function WelcomeScreen() {
         contentContainerStyle={{ flexGrow: 1, paddingBottom: insets.bottom + spacing.md }}
         bounces={false}
       >
-        {/* The hero takes a fixed share of the screen (same as Sign in); the route is
-            centred inside it and any spare height below goes above the buttons. */}
-        <View style={[styles.hero, { backgroundColor: t.hero, paddingTop: insets.top + spacing.sm, minHeight: height * HERO_HEIGHT_RATIO }]}>
-          <Animated.View entering={firstVisit ? FadeInDown.delay(intro.brand).duration(400) : undefined}>
-            <Brand />
-          </Animated.View>
-
-          <View style={styles.routeArea}>
-            <RouteArc animated={firstVisit} />
-          </View>
-
+        {/* Same hero as Sign in, so the brand and route stay put when the screens cross-fade. */}
+        <AuthHero
+          routeAnimated={firstVisit}
+          brandEntering={firstVisit ? FadeInDown.delay(intro.brand).duration(400) : undefined}
+        >
           <WordReveal
             text="Your car, from auction to your door."
             style={[styles.headline, { color: t.onHero }]}
@@ -86,7 +79,7 @@ export default function WelcomeScreen() {
           >
             Follow every step of your vehicle’s journey, with photos and documents as soon as they’re ready.
           </Animated.Text>
-        </View>
+        </AuthHero>
 
         <View style={styles.body}>
           <View style={styles.features}>
@@ -122,14 +115,6 @@ export default function WelcomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  // Hero and body share one left edge (spacing.lg) so brand, headline and features line up.
-  hero: {
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.xl,
-    borderBottomLeftRadius: radius.lg * 1.5,
-    borderBottomRightRadius: radius.lg * 1.5,
-  },
-  routeArea: { flexGrow: 1, justifyContent: "center", paddingVertical: spacing.lg },
   headline: { fontSize: 30, fontWeight: "800", lineHeight: 36, letterSpacing: -0.5 },
   subhead: { fontSize: 15, lineHeight: 21, marginTop: spacing.sm },
   body: { flexGrow: 1, paddingHorizontal: spacing.lg, paddingTop: spacing.lg },

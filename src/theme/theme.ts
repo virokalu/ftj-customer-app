@@ -16,6 +16,7 @@ const light = {
   hero: "#2B2B2D", // dark panel at the top of the welcome screen
   onHero: "#FFFFFF",
   onHeroMuted: "#C9C9CE",
+  heroChip: "rgba(255,255,255,0.08)", // small pills on the hero panel
 } as const;
 
 const dark = {
@@ -31,6 +32,7 @@ const dark = {
   hero: "#1F1F23",
   onHero: "#FFFFFF",
   onHeroMuted: "#A1A1AA",
+  heroChip: "rgba(255,255,255,0.08)",
 } as const;
 
 export type Theme = { [K in keyof typeof light]: string };
