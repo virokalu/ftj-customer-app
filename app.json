@@ -11,7 +11,30 @@
       "supportsTablet": false,
       "bundleIdentifier": "com.example.ftjcustomer"
     },
-    "plugins": ["expo-router", "expo-secure-store"],
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png",
+        "backgroundColor": "#343436"
+      }
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 240,
+          "resizeMode": "contain",
+          "backgroundColor": "#2B2B2D",
+          "dark": {
+            "image": "./assets/splash-icon.png",
+            "backgroundColor": "#2B2B2D"
+          }
+        }
+      ]
+    ],
     "experiments": {
       "typedRoutes": true
     }

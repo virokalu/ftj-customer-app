@@ -5,7 +5,7 @@ import { Linking, ScrollView, StyleSheet, View } from "react-native";
 import Animated, { FadeIn, FadeInDown, FadeInUp } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { AuthHero } from "@/components/auth-hero";
+import { AuthHero, heroText, welcomeCopy } from "@/components/auth-hero";
 import { AppText, Button } from "@/components/ui";
 import { WordReveal } from "@/components/word-reveal";
 import { useFirstVisit } from "@/lib/first-visit";
@@ -66,8 +66,8 @@ export default function WelcomeScreen() {
           brandEntering={firstVisit ? FadeInDown.delay(intro.brand).duration(400) : undefined}
         >
           <WordReveal
-            text="Your car, from auction to your door."
-            style={[styles.headline, { color: t.onHero }]}
+            text={welcomeCopy.headline}
+            style={[heroText.headline, { color: t.onHero }]}
             delay={intro.headline}
             stagger={intro.headlineStagger}
             animated={firstVisit}
@@ -75,9 +75,9 @@ export default function WelcomeScreen() {
           />
           <Animated.Text
             entering={firstVisit ? FadeIn.delay(intro.subhead).duration(400) : undefined}
-            style={[styles.subhead, { color: t.onHeroMuted }]}
+            style={[heroText.subhead, { color: t.onHeroMuted }]}
           >
-            Follow every step of your vehicle’s journey, with photos and documents as soon as they’re ready.
+            {welcomeCopy.subhead}
           </Animated.Text>
         </AuthHero>
 
@@ -115,8 +115,6 @@ export default function WelcomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  headline: { fontSize: 30, fontWeight: "800", lineHeight: 36, letterSpacing: -0.5 },
-  subhead: { fontSize: 15, lineHeight: 21, marginTop: spacing.sm },
   body: { flexGrow: 1, paddingHorizontal: spacing.lg, paddingTop: spacing.lg },
   features: { gap: spacing.md + spacing.xs },
   buttonSpacer: { flexGrow: 1, minHeight: spacing.xl },

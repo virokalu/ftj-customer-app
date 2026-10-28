@@ -108,7 +108,7 @@ export default function SignInScreen() {
         contentContainerStyle={{ flexGrow: 1, paddingBottom: insets.bottom + spacing.md }}
       >
         {/* Same hero as Welcome (same height too), so the panel stays put when the screens cross-fade. */}
-        <AuthHero routeAnimated={firstVisit}>
+        <AuthHero routeAnimated={firstVisit} matchWelcomeHeight>
           <WordReveal
             text="Welcome back"
             style={[styles.title, { color: t.onHero }]}

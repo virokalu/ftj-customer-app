@@ -1,3 +1,4 @@
+import { Image } from "expo-image";
 import { SymbolView } from "expo-symbols";
 import { useEffect } from "react";
 import { StyleSheet, Text, View, type StyleProp, type ViewStyle } from "react-native";
@@ -18,15 +19,17 @@ import Svg, { Circle, Path } from "react-native-svg";
 import { spacing, useTheme } from "@/theme/theme";
 
 /**
- * "/F FTJ Exports" brand row, for use on the dark hero panels (Welcome, Sign in).
+ * FTJ letters (the app icon's artwork) + "Exports": brand row for the dark hero panels (Welcome, Sign in).
  * This is FTJ's customer app; CargoDev (the developer) is credited only on Sign in.
  */
 export function Brand() {
   const t = useTheme();
   return (
-    <View style={styles.brand}>
-      <Text style={[styles.brandMark, { color: t.accent }]}>/F</Text>
-      <Text style={[styles.brandName, { color: t.onHero }]}>FTJ Exports</Text>
+    // One element for screen readers: "FTJ Exports", not an image plus "Exports".
+    <View style={styles.brand} accessible accessibilityLabel="FTJ Exports">
+      {/* The app icon's letters (assets/brand/ftj-icon.svg), cropped tight, transparent background. */}
+      <Image source={require("../../assets/brand/ftj-letters.png")} style={styles.brandMark} />
+      <Text style={[styles.brandName, { color: t.onHero }]}>Exports</Text>
     </View>
   );
 }
@@ -211,7 +214,8 @@ export function RouteArc({
 
 const styles = StyleSheet.create({
   brand: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
-  brandMark: { fontSize: 26, fontWeight: "900", fontStyle: "italic" },
+  // Keeps the artwork's 556x194 proportions; about the height of the "Exports" capitals.
+  brandMark: { height: 22, aspectRatio: 556 / 194 },
   brandName: { fontSize: 24, fontWeight: "700", letterSpacing: -0.3 },
   ship: { position: "absolute", alignItems: "center", justifyContent: "center" },
   routeLabel: { position: "absolute", fontSize: 11, marginTop: spacing.sm + 2 },
