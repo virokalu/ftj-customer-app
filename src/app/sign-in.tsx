@@ -3,20 +3,44 @@ import { StatusBar } from "expo-status-bar";
 import { SymbolView, type SymbolViewProps } from "expo-symbols";
 import { useRef, useState, type ComponentRef, type ReactNode } from "react";
 import { Linking, Pressable, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View } from "react-native";
+import Animated, {
+  FadeIn,
+  FadeInUp,
+  useAnimatedStyle,
+  useReducedMotion,
+  useSharedValue,
+  withSequence,
+  withTiming,
+} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Brand, HERO_HEIGHT_RATIO, RouteArc } from "@/components/route-arc";
 import { AppText, Button } from "@/components/ui";
+import { WordReveal } from "@/components/word-reveal";
+import { useFirstVisit } from "@/lib/first-visit";
 import { useAuth } from "@/features/auth/auth-context";
 import { ApiError } from "@/lib/api/client";
 import { config } from "@/lib/config";
 import { radius, spacing, useTheme } from "@/theme/theme";
+
+// Intro timings in ms after the screen mounts. The ship reaches mid-route at about 1300
+// inside RouteArc; the form comes in meanwhile. Reanimated skips these under Reduce Motion.
+const intro = {
+  title: 300,
+  titleStagger: 60,
+  subtitle: 450,
+  fields: 500,
+  button: 600,
+  footer: 700,
+};
 
 // Sign-in only. Accounts are created on the FTJ website (decision, 19 Oct 2026).
 // Layout follows 1-getting-started.png, "Sign in".
 export default function SignInScreen() {
   const t = useTheme();
   const insets = useSafeAreaInsets();
+  // The intro plays the first time this screen opens in an app run, not on every visit.
+  const firstVisit = useFirstVisit("sign-in");
   const { height } = useWindowDimensions();
   const { signIn } = useAuth();
   const passwordRef = useRef<ComponentRef<typeof TextInput>>(null);
@@ -25,8 +49,18 @@ export default function SignInScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const reduceMotion = useReducedMotion();
+  // Horizontal shake of the field card when sign-in fails.
+  const shake = useSharedValue(0);
+  const shakeStyle = useAnimatedStyle(() => ({ transform: [{ translateX: shake.value }] }));
 
   const canSubmit = email.trim().length > 0 && password.length > 0;
+
+  function shakeFields() {
+    if (reduceMotion) return;
+    const step = (x: number) => withTiming(x, { duration: 50 });
+    shake.set(withSequence(step(-8), step(8), step(-6), step(6), step(-3), step(0)));
+  }
 
   async function onSubmit() {
     setError(null);
@@ -38,6 +72,7 @@ export default function SignInScreen() {
       // The backend answers 400 for any bad credentials (same wording for wrong email and wrong
       // password, so nobody can probe which emails exist), 403 when locked, 429 when rate limited.
       setError(signInErrorMessage(e));
+      shakeFields();
     } finally {
       setSubmitting(false);
     }
@@ -85,75 +120,96 @@ export default function SignInScreen() {
           </View>
 
           <View style={styles.routeArea}>
-            <RouteArc />
+            <RouteArc animated={firstVisit} />
           </View>
 
-          <Text style={[styles.title, { color: t.onHero }]} accessibilityRole="header">
-            Welcome back
-          </Text>
-          <Text style={[styles.subtitle, { color: t.onHeroMuted }]}>Sign in to see your vehicles.</Text>
+          <WordReveal
+            text="Welcome back"
+            style={[styles.title, { color: t.onHero }]}
+            delay={intro.title}
+            stagger={intro.titleStagger}
+            animated={firstVisit}
+            header
+          />
+          <Animated.Text
+            entering={firstVisit ? FadeIn.delay(intro.subtitle).duration(400) : undefined}
+            style={[styles.subtitle, { color: t.onHeroMuted }]}
+          >
+            Sign in to see your vehicles.
+          </Animated.Text>
         </View>
 
         <View style={styles.form}>
-          <View style={[styles.fields, { backgroundColor: t.surface, borderColor: t.border }]}>
-            <Field icon={{ ios: "envelope", android: "mail", web: "mail" }} label="Email">
-              <TextInput
-                value={email}
-                onChangeText={setEmail}
-                placeholder="you@company.com"
-                placeholderTextColor={t.textMuted}
-                autoCapitalize="none"
-                autoComplete="email"
-                keyboardType="email-address"
-                textContentType="username"
-                returnKeyType="next"
-                onSubmitEditing={() => passwordRef.current?.focus()}
-                submitBehavior="submit"
-                style={inputStyle}
-              />
-            </Field>
-            <View style={{ height: StyleSheet.hairlineWidth, backgroundColor: t.border, marginLeft: 48 }} />
-            <Field
-              icon={{ ios: "lock", android: "lock", web: "lock" }}
-              label="Password"
-              trailing={
-                <Pressable
-                  onPress={() => setShowPassword((v) => !v)}
-                  accessibilityRole="button"
-                  accessibilityLabel={showPassword ? "Hide password" : "Show password"}
-                  hitSlop={12}
-                >
-                  <SymbolView
-                    name={
-                      showPassword
-                        ? { ios: "eye.slash", android: "visibility_off", web: "visibility_off" }
-                        : { ios: "eye", android: "visibility", web: "visibility" }
-                    }
-                    size={18}
-                    tintColor={t.textMuted}
-                  />
-                </Pressable>
-              }
-            >
-              <TextInput
-                ref={passwordRef}
-                value={password}
-                onChangeText={setPassword}
-                placeholder="Your password"
-                placeholderTextColor={t.textMuted}
-                secureTextEntry={!showPassword}
-                autoCapitalize="none"
-                autoComplete="current-password"
-                textContentType="password"
-                returnKeyType="go"
-                onSubmitEditing={() => canSubmit && onSubmit()}
-                style={inputStyle}
-              />
-            </Field>
-          </View>
+          {/* Outer view slides in once; inner view shakes on errors (two separate transforms). */}
+          <Animated.View entering={firstVisit ? FadeInUp.delay(intro.fields).duration(400) : undefined}>
+            <Animated.View style={[styles.fields, { backgroundColor: t.surface, borderColor: t.border }, shakeStyle]}>
+              <Field icon={{ ios: "envelope", android: "mail", web: "mail" }} label="Email">
+                <TextInput
+                  value={email}
+                  onChangeText={setEmail}
+                  placeholder="you@company.com"
+                  placeholderTextColor={t.textMuted}
+                  autoCapitalize="none"
+                  autoComplete="email"
+                  keyboardType="email-address"
+                  textContentType="username"
+                  returnKeyType="next"
+                  onSubmitEditing={() => passwordRef.current?.focus()}
+                  submitBehavior="submit"
+                  style={inputStyle}
+                />
+              </Field>
+              <View style={{ height: StyleSheet.hairlineWidth, backgroundColor: t.border, marginLeft: 48 }} />
+              <Field
+                icon={{ ios: "lock", android: "lock", web: "lock" }}
+                label="Password"
+                trailing={
+                  <Pressable
+                    onPress={() => setShowPassword((v) => !v)}
+                    accessibilityRole="button"
+                    accessibilityLabel={showPassword ? "Hide password" : "Show password"}
+                    hitSlop={12}
+                  >
+                    <SymbolView
+                      name={
+                        showPassword
+                          ? { ios: "eye.slash", android: "visibility_off", web: "visibility_off" }
+                          : { ios: "eye", android: "visibility", web: "visibility" }
+                      }
+                      size={18}
+                      tintColor={t.textMuted}
+                    />
+                  </Pressable>
+                }
+              >
+                <TextInput
+                  ref={passwordRef}
+                  value={password}
+                  onChangeText={setPassword}
+                  placeholder="Your password"
+                  placeholderTextColor={t.textMuted}
+                  secureTextEntry={!showPassword}
+                  autoCapitalize="none"
+                  autoComplete="current-password"
+                  textContentType="password"
+                  returnKeyType="go"
+                  onSubmitEditing={() => canSubmit && onSubmit()}
+                  style={inputStyle}
+                />
+              </Field>
+            </Animated.View>
+          </Animated.View>
 
-          {/* TODO: "Forgot password?" sheet (needs the reset endpoints) and
-              "Continue with phone number" (phone OTP is still an open decision). */}
+          {/* Text only for now. TODO: open the "Forgot password?" sheet (needs the reset endpoints).
+              Also TODO: "Continue with phone number" (phone OTP is still an open decision). */}
+          <Animated.View
+            entering={firstVisit ? FadeIn.delay(intro.fields).duration(400) : undefined}
+            style={styles.forgot}
+          >
+            <Pressable accessibilityRole="button" hitSlop={8}>
+              <Text style={{ color: t.accent, fontSize: 14, fontWeight: "600" }}>Forgot password?</Text>
+            </Pressable>
+          </Animated.View>
 
           {error ? (
             <View style={[styles.error, { backgroundColor: t.accentSoft }]} accessibilityRole="alert">
@@ -166,23 +222,25 @@ export default function SignInScreen() {
             </View>
           ) : null}
 
-          <View style={{ marginTop: spacing.md + spacing.xs }}>
+          <Animated.View entering={firstVisit ? FadeIn.delay(intro.button).duration(400) : undefined} style={{ marginTop: spacing.md + spacing.xs }}>
             <Button label="Sign in" onPress={onSubmit} loading={submitting} />
-          </View>
+          </Animated.View>
 
           {/* Pushes the footer to the bottom, like the buttons on Welcome. */}
           <View style={styles.footerSpacer} />
 
-          <AppText muted style={{ textAlign: "center", fontSize: 14 }}>
-            New to CargoDev?{" "}
-            <Text
-              style={{ color: t.accent, fontWeight: "600" }}
-              accessibilityRole="link"
-              onPress={() => Linking.openURL(config.websiteUrl)}
-            >
-              Create an account
-            </Text>
-          </AppText>
+          <Animated.View entering={firstVisit ? FadeIn.delay(intro.footer).duration(400) : undefined}>
+            <AppText muted style={{ textAlign: "center", fontSize: 14 }}>
+              New to CargoDev?{" "}
+              <Text
+                style={{ color: t.accent, fontWeight: "600" }}
+                accessibilityRole="link"
+                onPress={() => Linking.openURL(config.websiteUrl)}
+              >
+                Create an account
+              </Text>
+            </AppText>
+          </Animated.View>
         </View>
       </ScrollView>
     </View>
@@ -239,6 +297,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
   },
   footerSpacer: { flexGrow: 1, minHeight: spacing.lg },
+  forgot: { alignSelf: "flex-end", marginTop: spacing.sm + spacing.xs },
   fields: {
     borderRadius: radius.md,
     borderWidth: StyleSheet.hairlineWidth,

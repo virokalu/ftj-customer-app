@@ -58,7 +58,9 @@ function RootNavigator() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Protected guard={!isSignedIn}>
         <Stack.Screen name="welcome" />
-        <Stack.Screen name="sign-in" />
+        {/* Cross-fade: both screens share the same hero, so it seems to stay put while the
+            route replays and the form replaces the welcome text. */}
+        <Stack.Screen name="sign-in" options={{ animation: "fade" }} />
       </Stack.Protected>
       <Stack.Protected guard={isSignedIn}>
         <Stack.Screen name="(tabs)" />

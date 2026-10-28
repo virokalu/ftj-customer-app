@@ -1,11 +1,14 @@
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { SymbolView, type SymbolViewProps } from "expo-symbols";
-import { Linking, ScrollView, StyleSheet, Text, useWindowDimensions, View } from "react-native";
+import { Linking, ScrollView, StyleSheet, useWindowDimensions, View } from "react-native";
+import Animated, { FadeIn, FadeInDown, FadeInUp } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Brand, HERO_HEIGHT_RATIO, RouteArc } from "@/components/route-arc";
 import { AppText, Button } from "@/components/ui";
+import { WordReveal } from "@/components/word-reveal";
+import { useFirstVisit } from "@/lib/first-visit";
 import { config } from "@/lib/config";
 import { radius, spacing, useTheme } from "@/theme/theme";
 
@@ -29,11 +32,25 @@ const features: { icon: SymbolName; title: string; body: string }[] = [
   },
 ];
 
+// Intro timings in ms after the screen mounts. The route (ship sailing) runs 200-1300
+// inside RouteArc; the words follow it. Reanimated skips all of this under Reduce Motion.
+const intro = {
+  brand: 0,
+  headline: 1200,
+  headlineStagger: 60,
+  subhead: 1700,
+  features: 1800,
+  featureStagger: 80,
+  buttons: 2100,
+};
+
 // First screen for signed-out users (design: 1-getting-started.png, "Welcome").
 // "Create account" opens the FTJ website: the app is sign-in only (decision, 19 Oct 2026).
 export default function WelcomeScreen() {
   const t = useTheme();
   const insets = useSafeAreaInsets();
+  // The intro plays the first time this screen opens in an app run, not on every visit.
+  const firstVisit = useFirstVisit("welcome");
   const { height } = useWindowDimensions();
 
   return (
@@ -47,24 +64,38 @@ export default function WelcomeScreen() {
         {/* The hero takes a fixed share of the screen (same as Sign in); the route is
             centred inside it and any spare height below goes above the buttons. */}
         <View style={[styles.hero, { backgroundColor: t.hero, paddingTop: insets.top + spacing.sm, minHeight: height * HERO_HEIGHT_RATIO }]}>
-          <Brand />
+          <Animated.View entering={firstVisit ? FadeInDown.delay(intro.brand).duration(400) : undefined}>
+            <Brand />
+          </Animated.View>
 
           <View style={styles.routeArea}>
-            <RouteArc />
+            <RouteArc animated={firstVisit} />
           </View>
 
-          <Text style={[styles.headline, { color: t.onHero }]} accessibilityRole="header">
-            Your car, from auction to your door.
-          </Text>
-          <Text style={[styles.subhead, { color: t.onHeroMuted }]}>
+          <WordReveal
+            text="Your car, from auction to your door."
+            style={[styles.headline, { color: t.onHero }]}
+            delay={intro.headline}
+            stagger={intro.headlineStagger}
+            animated={firstVisit}
+            header
+          />
+          <Animated.Text
+            entering={firstVisit ? FadeIn.delay(intro.subhead).duration(400) : undefined}
+            style={[styles.subhead, { color: t.onHeroMuted }]}
+          >
             Follow every step of your vehicle’s journey, with photos and documents as soon as they’re ready.
-          </Text>
+          </Animated.Text>
         </View>
 
         <View style={styles.body}>
           <View style={styles.features}>
-            {features.map((f) => (
-              <View key={f.title} style={styles.feature}>
+            {features.map((f, i) => (
+              <Animated.View
+                key={f.title}
+                entering={firstVisit ? FadeInUp.delay(intro.features + i * intro.featureStagger).duration(400) : undefined}
+                style={styles.feature}
+              >
                 <View style={[styles.featureIcon, { backgroundColor: t.accentSoft }]}>
                   <SymbolView name={f.icon} size={24} tintColor={t.accent} />
                 </View>
@@ -74,16 +105,16 @@ export default function WelcomeScreen() {
                     {f.body}
                   </AppText>
                 </View>
-              </View>
+              </Animated.View>
             ))}
           </View>
 
           <View style={styles.buttonSpacer} />
 
-          <View style={styles.buttons}>
+          <Animated.View entering={firstVisit ? FadeIn.delay(intro.buttons).duration(400) : undefined} style={styles.buttons}>
             <Button label="Create account" onPress={() => Linking.openURL(config.websiteUrl)} />
             <Button label="I already have an account" variant="secondary" onPress={() => router.push("/sign-in")} />
-          </View>
+          </Animated.View>
         </View>
       </ScrollView>
     </View>
