@@ -15,6 +15,7 @@ import Animated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AuthHero } from "@/components/auth-hero";
+import { JourneySteps } from "@/components/journey-steps";
 import { AppText, Button } from "@/components/ui";
 import { WordReveal } from "@/components/word-reveal";
 import { useFirstVisit } from "@/lib/first-visit";
@@ -35,13 +36,6 @@ const intro = {
   button: 600,
   footer: 700,
 };
-
-// What the user follows once signed in, shown as pills in the hero.
-const journeySteps: { icon: SymbolViewProps["name"]; label: string }[] = [
-  { icon: { ios: "checkmark.circle.fill", android: "check_circle", web: "check_circle" }, label: "Booked" },
-  { icon: { ios: "ferry.fill", android: "directions_boat", web: "directions_boat" }, label: "On the ship" },
-  { icon: { ios: "flag.fill", android: "flag", web: "flag" }, label: "Arrived" },
-];
 
 // Sign-in only. Accounts are created on the FTJ website (decision, 19 Oct 2026).
 // Layout follows 1-getting-started.png, "Sign in".
@@ -130,20 +124,7 @@ export default function SignInScreen() {
             Sign in to see your vehicles.
           </Animated.Text>
           {/* What the user follows once signed in, right under the text it belongs to. */}
-          <View style={styles.steps}>
-            {journeySteps.map((s, i) => (
-              <Animated.View
-                key={s.label}
-                entering={firstVisit ? FadeInUp.delay(intro.steps + i * intro.stepStagger).duration(400) : undefined}
-                style={[styles.step, { backgroundColor: t.heroChip }]}
-              >
-                <SymbolView name={s.icon} size={15} tintColor={i === journeySteps.length - 1 ? t.accent : t.onHero} />
-                <AppText numberOfLines={1} style={{ color: t.onHero, fontSize: 13, fontWeight: "500" }}>
-                  {s.label}
-                </AppText>
-              </Animated.View>
-            ))}
-          </View>
+          <JourneySteps animated={firstVisit} delay={intro.steps} stagger={intro.stepStagger} />
         </AuthHero>
 
         <View style={styles.form}>
@@ -311,18 +292,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: spacing.xs + 2,
     marginTop: spacing.md,
-  },
-  // One row: the three pills share the width equally, so they always fit side by side.
-  steps: { flexDirection: "row", gap: spacing.sm, marginTop: spacing.md + spacing.xs },
-  step: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: spacing.xs + 2,
-    paddingHorizontal: spacing.xs + 2,
-    paddingVertical: spacing.sm + 2,
-    borderRadius: 999,
   },
   back: {
     flexDirection: "row",
