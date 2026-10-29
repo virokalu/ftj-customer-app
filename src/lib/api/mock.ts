@@ -1,5 +1,5 @@
 // Fake backend for development, so screens can be built before the real API exists.
-// Mirrors cargodev-api (docs/api/CUSTOMER_API.md): successes are { data }, errors are
+// Mirrors cargodev-api (docs/cargodev-api-integration.md): successes are { data }, errors are
 // { error: { code, message } }, with the same status codes. Turn off with EXPO_PUBLIC_USE_MOCKS=false.
 // Demo login: any email + password "demo1234".
 

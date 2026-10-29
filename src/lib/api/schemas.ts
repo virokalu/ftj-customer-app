@@ -1,18 +1,18 @@
 import { z } from "zod";
 
-// These schemas ARE the app's copy of the API contract. Source of truth: docs/api/CUSTOMER_API.md
+// These schemas ARE the app's copy of the API contract. Source of truth: docs/cargodev-api-integration.md
 // (extracted from cargodev-api). Auth and /me match the real backend; vehicles and stock are
 // NOT IMPLEMENTED there yet, so their shapes are still our best guess and only served by mocks.
 // Rules baked in on purpose:
 //  - A bought vehicle has NO price field at all (v2 change notes).
 //  - A stock vehicle has an OPTIONAL price: the server omits the key unless showPrice is true.
 //  - Nothing here knows about remarks, auction hall, bill-paid, costs or the activity log.
-// The backend has no OpenAPI spec yet (CUSTOMER_API.md 1.2), so these are hand-written.
+// The backend has no OpenAPI spec yet (docs/cargodev-api-integration.md), so these are hand-written.
 
 // Unknown statuses fall back to "UNKNOWN" instead of crashing the app when the backend
 // adds a new status before the app is updated (forward compatibility).
 // The backend's effective status is exactly these four; ARRIVED / DELIVERED are timeline
-// milestones, not statuses (CUSTOMER_API.md 2.5).
+// milestones, not statuses (docs/cargodev-api-integration.md section 7).
 export const vehicleStatus = z
   .enum(["PENDING", "BOOKING_RECEIVED", "SHIPPED", "CANCELLED", "UNKNOWN"])
   .catch("UNKNOWN");

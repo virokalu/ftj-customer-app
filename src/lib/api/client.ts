@@ -21,7 +21,7 @@ export class ApiError extends Error {
 }
 
 // The backend wraps every success as { data } and every failure as
-// { error: { code, message, fieldErrors? } } (CUSTOMER_API.md 2.2).
+// { error: { code, message, fieldErrors? } } (docs/cargodev-api-integration.md section 3).
 const successEnvelope = z.object({ data: z.unknown() });
 const errorEnvelope = z.object({
   error: z.object({
