@@ -1,11 +1,30 @@
 import { z } from "zod";
 
 import { request } from "./client";
-import { me, session, stockListResponse, vehicleListResponse } from "./schemas";
+import { home, me, session, vehicleDetail, vehicleListResponse, type VehicleStatus } from "./schemas";
 
 // One function per endpoint. Screens call these through React Query hooks and never
 // build URLs themselves, so when the backend changes a path, only this file changes.
-// Paths are relative to config.apiUrl (/api/customer/v1). See docs/cargodev-api-integration.md.
+// Paths are relative to config.apiUrl (/api/customer/v1). See docs/customer-app-integration.md.
+export type VehicleFilters = {
+  page?: number;
+  pageSize?: number;
+  status?: Exclude<VehicleStatus, "UNKNOWN">;
+  brand?: string;
+  sort?: "purchaseDate" | "arrival";
+  dir?: "asc" | "desc";
+};
+
+// Query strings are strict on the server (an unknown or empty parameter is a 400), so only
+// defined values are sent.
+function query(params: Record<string, string | number | undefined>): string {
+  const pairs = Object.entries(params).filter(
+    (entry): entry is [string, string | number] => entry[1] !== undefined && entry[1] !== "",
+  );
+  if (pairs.length === 0) return "";
+  return `?${pairs.map(([k, v]) => `${k}=${encodeURIComponent(String(v))}`).join("&")}`;
+}
+
 export const api = {
   login: (email: string, password: string) =>
     request("/auth/login", session, { method: "POST", body: { email, password }, auth: false }),
@@ -18,11 +37,11 @@ export const api = {
       auth: false,
     }),
 
-  // NOT IMPLEMENTED in the backend yet: served by mocks only.
-
   me: () => request("/me", me),
 
-  vehicles: () => request("/vehicles", vehicleListResponse),
+  home: () => request("/home", home),
 
-  stock: () => request("/stock", stockListResponse),
+  vehicles: (filters: VehicleFilters = {}) => request(`/vehicles${query(filters)}`, vehicleListResponse),
+
+  vehicle: (id: string) => request(`/vehicles/${encodeURIComponent(id)}`, vehicleDetail),
 };

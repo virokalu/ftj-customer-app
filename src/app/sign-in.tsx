@@ -82,9 +82,17 @@ export default function SignInScreen() {
 
   function signInErrorMessage(e: unknown): string {
     if (!(e instanceof ApiError)) return "Something went wrong. Please try again.";
-    if (e.status === 400) return "Invalid email or password.";
-    if (e.status === 403) return "Too many failed attempts. Your account is locked for a few minutes.";
+    if (e.status === 0) return "No connection. Check your internet and try again.";
+    // Malformed input (bad email format) comes back with fieldErrors; wrong credentials without.
+    if (e.status === 400) {
+      return e.fieldErrors?.email
+        ? "Enter a valid email address."
+        : "Email or password is incorrect.";
+    }
+    // The lock message is the one server text the contract allows us to show (§2.4).
+    if (e.status === 403) return e.message;
     if (e.status === 429) return "Too many attempts. Please wait a moment and try again.";
+    if (e.status >= 500) return "Something went wrong on our side. Please try again.";
     return "Something went wrong. Please try again.";
   }
 

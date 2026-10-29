@@ -1,57 +1,74 @@
 import { z } from "zod";
 
-// These schemas ARE the app's copy of the API contract. Source of truth: docs/cargodev-api-integration.md
-// (extracted from cargodev-api). Auth and /me match the real backend; vehicles and stock are
-// NOT IMPLEMENTED there yet, so their shapes are still our best guess and only served by mocks.
+// These schemas ARE the app's copy of the API contract. Source of truth:
+// docs/customer-app-integration.md (contract v1.0.0, generated from cargodev-api and guarded by
+// its tests); how the app uses it is in docs/cargodev-api-integration.md.
 // Rules baked in on purpose:
-//  - A bought vehicle has NO price field at all (v2 change notes).
-//  - A stock vehicle has an OPTIONAL price: the server omits the key unless showPrice is true.
+//  - A vehicle has NO price or amount field at all; the API never sends one (contract §4).
 //  - Nothing here knows about remarks, auction hall, bill-paid, costs or the activity log.
-// The backend has no OpenAPI spec yet (docs/cargodev-api-integration.md), so these are hand-written.
+//  - Unknown keys are ignored (zod strips them) and unknown enum values fall back, so a newer
+//    server never crashes an older app (contract §13).
 
-// Unknown statuses fall back to "UNKNOWN" instead of crashing the app when the backend
-// adds a new status before the app is updated (forward compatibility).
-// The backend's effective status is exactly these four; ARRIVED / DELIVERED are timeline
-// milestones, not statuses (docs/cargodev-api-integration.md section 7).
+// The statuses a customer sees (contract §4). CANCELLED is never sent. Unknown values fall
+// back to "UNKNOWN" instead of failing the whole response.
 export const vehicleStatus = z
-  .enum(["PENDING", "BOOKING_RECEIVED", "SHIPPED", "CANCELLED", "UNKNOWN"])
+  .enum(["PENDING", "BOOKING_RECEIVED", "SHIPPED", "ARRIVED", "DELIVERED", "UNKNOWN"])
   .catch("UNKNOWN");
 export type VehicleStatus = z.infer<typeof vehicleStatus>;
 
+// Every field except id, serial, status and photoCount can be null. Dates are ISO strings;
+// etd/eta are midnight UTC, so format them with timeZone "UTC".
 export const vehicleSummary = z.object({
   id: z.string(),
-  // Brand and model are optional relations in the backend, so both can be null.
-  make: z.string().nullable(),
+  serial: z.string(),
+  brand: z.string().nullable(),
   model: z.string().nullable(),
+  grade: z.string().nullable(),
   year: z.number().int().nullable(),
   chassisNo: z.string().nullable(),
+  destination: z.string().nullable(),
   status: vehicleStatus,
-  etd: z.string().nullable(), // ISO date
-  eta: z.string().nullable(), // ISO date
-  // TODO: the backend serves photos by id with the Bearer token (GET /photos/:id/image), not
-  // by public URL. Replace with a photo id once the vehicle DTO is defined (open question 7).
-  thumbnailUrl: z.string().nullable(),
+  purchaseDate: z.string().nullable(),
+  etd: z.string().nullable(),
+  eta: z.string().nullable(),
+  portOfLoading: z.string().nullable(),
+  portOfDischarge: z.string().nullable(),
+  vesselName: z.string().nullable(),
+  // Photos are served by id with the Bearer token (GET /photos/:id/image), never by URL.
+  coverPhotoId: z.string().nullable(),
+  photoCount: z.number().int(),
 });
 export type VehicleSummary = z.infer<typeof vehicleSummary>;
 
+export const vehicleDetail = vehicleSummary.extend({
+  voyageNo: z.string().nullable(),
+  blNo: z.string().nullable(),
+  shippingMethod: z.enum(["RORO", "CONTAINER"]).nullable().catch(null),
+  containerNumber: z.string().nullable(),
+});
+export type VehicleDetail = z.infer<typeof vehicleDetail>;
+
+// Lists are page-numbered: { rows, total, page, pageSize }.
 export const vehicleListResponse = z.object({
-  items: z.array(vehicleSummary),
+  rows: z.array(vehicleSummary),
+  total: z.number().int(),
+  page: z.number().int(),
+  pageSize: z.number().int(),
 });
+export type VehicleList = z.infer<typeof vehicleListResponse>;
 
-export const stockVehicle = z.object({
-  id: z.string(),
-  make: z.string(),
-  model: z.string(),
-  year: z.number().int().nullable(),
-  thumbnailUrl: z.string().nullable(),
-  // Present ONLY when the staff allowed it. Absent means "Price on request".
-  price: z.object({ amount: z.number(), currency: z.string() }).optional(),
+export const home = z.object({
+  name: z.string(),
+  activeCount: z.number().int(),
+  deliveredCount: z.number().int(),
+  // Soonest upcoming ETD among PENDING / BOOKING_RECEIVED vehicles, or null.
+  nextDeparture: z
+    .object({ vehicleId: z.string(), serial: z.string(), etd: z.string() })
+    .nullable(),
+  // Up to 3, newest purchase first. May be empty.
+  recentVehicles: z.array(vehicleSummary),
 });
-export type StockVehicle = z.infer<typeof stockVehicle>;
-
-export const stockListResponse = z.object({
-  items: z.array(stockVehicle),
-});
+export type Home = z.infer<typeof home>;
 
 export const me = z.object({
   id: z.string(),

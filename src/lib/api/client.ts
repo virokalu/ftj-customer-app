@@ -49,13 +49,19 @@ async function send(path: string, opts: RequestOptions, accessToken: string | nu
   if (config.useMocks) {
     return mockRequest(path, opts.method ?? "GET", opts.body, accessToken);
   }
+  // fetch only throws when no response arrived at all (offline, DNS, TLS): report it as
+  // status 0 so screens can say "no connection" instead of blaming the server.
   const res = await fetch(`${config.apiUrl}${path}`, {
     method: opts.method ?? "GET",
+    // Content-Type only with a body: the server rejects a JSON content type on an empty body.
     headers: {
-      "Content-Type": "application/json",
+      Accept: "application/json",
+      ...(opts.body === undefined ? {} : { "Content-Type": "application/json" }),
       ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
     },
     body: opts.body === undefined ? undefined : JSON.stringify(opts.body),
+  }).catch(() => {
+    throw new ApiError(0, "Network request failed", "NETWORK");
   });
   if (res.status === 204) return { status: 204, data: null };
   const data: unknown = await res.json().catch(() => null);
