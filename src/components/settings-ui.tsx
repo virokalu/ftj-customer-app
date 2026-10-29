@@ -2,6 +2,7 @@ import { SymbolView, type SymbolViewProps } from "expo-symbols";
 import { Children, Fragment, type ReactNode } from "react";
 import { Pressable, StyleSheet, Switch, Text, View } from "react-native";
 
+import { raised } from "@/components/ui";
 import { radius, spacing, useTheme } from "@/theme/theme";
 
 // Grouped settings list (Account and its sub-screens): a caption, then rounded rows with
@@ -21,7 +22,7 @@ export function SettingsGroup({
   return (
     <View style={{ gap: spacing.sm }}>
       {title ? <Text style={[styles.caption, { color: t.textMuted }]}>{title}</Text> : null}
-      <View style={[styles.group, { backgroundColor: t.background, borderColor: t.border }]}>
+      <View style={[styles.group, raised, { backgroundColor: t.card, borderColor: t.border }]}>
         {rows.map((row, i) => (
           <Fragment key={i}>
             {i > 0 ? <View style={[styles.divider, { backgroundColor: t.border }]} /> : null}
@@ -124,7 +125,7 @@ export function ChoiceRow<T extends string | number>({
   return (
     <View style={[styles.row, { flexDirection: "column", alignItems: "stretch", gap: spacing.sm }]}>
       <Text style={[styles.label, { color: t.text, flex: 0 }]}>{label}</Text>
-      <View style={[styles.segmented, { backgroundColor: t.surface }]} accessibilityRole="radiogroup">
+      <View style={[styles.segmented, { backgroundColor: t.control }]} accessibilityRole="radiogroup">
         {options.map((o) => {
           const selected = o.value === value;
           return (
@@ -137,7 +138,7 @@ export function ChoiceRow<T extends string | number>({
               style={[
                 styles.segment,
                 selected && {
-                  backgroundColor: t.background,
+                  backgroundColor: t.controlSelected,
                   borderColor: t.border,
                   borderWidth: StyleSheet.hairlineWidth,
                 },
@@ -178,7 +179,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   footer: { fontSize: 12, lineHeight: 17, paddingHorizontal: 4 },
-  group: { borderRadius: radius.lg, borderWidth: StyleSheet.hairlineWidth, overflow: "hidden" },
+  group: { borderRadius: radius.lg, borderWidth: StyleSheet.hairlineWidth },
   divider: { height: StyleSheet.hairlineWidth, marginLeft: spacing.md },
   row: {
     flexDirection: "row",

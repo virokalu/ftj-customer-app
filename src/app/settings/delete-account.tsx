@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Alert, KeyboardAvoidingView, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
-import { AppText, Button } from "@/components/ui";
+import { AppText, Button, raised } from "@/components/ui";
 import { useDeleteAccount } from "@/features/account/hooks";
 import { useAuth } from "@/features/auth/auth-context";
 import { ApiError } from "@/lib/api/client";
@@ -69,13 +69,13 @@ export default function DeleteAccountScreen() {
   }
 
   return (
-    <KeyboardAvoidingView behavior="padding" style={{ flex: 1, backgroundColor: t.background }}>
+    <KeyboardAvoidingView behavior="padding" style={{ flex: 1, backgroundColor: t.canvas }}>
       <ScrollView
         keyboardShouldPersistTaps="handled"
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={{ padding: spacing.md, gap: spacing.lg }}
       >
-        <View style={[styles.panel, { backgroundColor: t.surface }]}>
+        <View style={[styles.panel, raised, { backgroundColor: t.card, borderColor: t.border }]}>
           <Text style={{ color: t.text, fontSize: 16, fontWeight: "700" }}>What happens</Text>
           {[
             "Your profile, chat history, alerts and notification settings are removed.",
@@ -107,7 +107,7 @@ export default function DeleteAccountScreen() {
             accessibilityLabel="Current password"
             style={[
               styles.input,
-              { color: t.text, backgroundColor: t.surface, borderColor: error ? t.danger : t.border },
+              { color: t.text, backgroundColor: t.card, borderColor: error ? t.danger : t.border },
             ]}
           />
           {error ? (

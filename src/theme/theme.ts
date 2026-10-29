@@ -8,6 +8,11 @@ import { Appearance, useColorScheme } from "react-native";
 const light = {
   background: "#FFFFFF",
   surface: "#F6F6F7",
+  // Card lists (My vehicles): a tinted page with raised white cards, like iOS grouped lists.
+  canvas: "#F2F2F5",
+  card: "#FFFFFF",
+  control: "#E6E6EB", // search fields and segmented controls sitting on `canvas`
+  controlSelected: "#FFFFFF",
   border: "#E4E4E7",
   text: "#18181B",
   textMuted: "#6A6A73",
@@ -35,6 +40,10 @@ const light = {
 const dark = {
   background: "#0F0F11",
   surface: "#1A1A1D",
+  canvas: "#0B0B0D",
+  card: "#1C1C21",
+  control: "#1C1C21",
+  controlSelected: "#3A3A41",
   border: "#2E2E33",
   text: "#F4F4F5",
   textMuted: "#A1A1AA",

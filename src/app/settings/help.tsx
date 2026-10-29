@@ -3,7 +3,7 @@ import { SymbolView } from "expo-symbols";
 import { useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
-import { AppText, Button, Centered } from "@/components/ui";
+import { AppText, Button, Centered, raised } from "@/components/ui";
 import { useFaqs } from "@/features/account/hooks";
 import { radius, spacing, useTheme } from "@/theme/theme";
 
@@ -32,13 +32,13 @@ export default function HelpScreen() {
   return (
     <ScrollView
       contentInsetAdjustmentBehavior="automatic"
-      style={{ backgroundColor: t.background }}
+      style={{ backgroundColor: t.canvas }}
       contentContainerStyle={{ padding: spacing.md, gap: spacing.md, paddingBottom: spacing.xl }}
     >
       {data.length === 0 ? (
         <AppText muted>No FAQs yet.</AppText>
       ) : (
-        <View style={[styles.group, { borderColor: t.border }]}>
+        <View style={[styles.group, raised, { backgroundColor: t.card, borderColor: t.border }]}>
           {data.map((faq, i) => {
             const expanded = open === faq.id;
             return (
@@ -76,7 +76,7 @@ export default function HelpScreen() {
         </View>
       )}
 
-      <View style={[styles.contact, { backgroundColor: t.surface }]}>
+      <View style={[styles.contact, raised, { backgroundColor: t.card, borderColor: t.border }]}>
         <Text style={{ color: t.text, fontSize: 15, fontWeight: "700" }}>Still have a question?</Text>
         <AppText muted style={{ fontSize: 14 }}>
           Message the team and we&apos;ll get back to you.
@@ -88,7 +88,7 @@ export default function HelpScreen() {
 }
 
 const styles = StyleSheet.create({
-  group: { borderRadius: radius.lg, borderWidth: StyleSheet.hairlineWidth, overflow: "hidden" },
+  group: { borderRadius: radius.lg, borderWidth: StyleSheet.hairlineWidth },
   question: {
     flexDirection: "row",
     alignItems: "center",

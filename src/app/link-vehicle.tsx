@@ -48,7 +48,7 @@ export default function LinkVehicleScreen() {
 
   if (sent) {
     return (
-      <View style={[styles.center, { backgroundColor: t.background }]}>
+      <View style={[styles.center, { backgroundColor: t.canvas }]}>
         <View style={[styles.icon, { backgroundColor: t.successSoft }]}>
           <SymbolView
             name={{ ios: "checkmark", android: "check", web: "check" }}
@@ -69,7 +69,7 @@ export default function LinkVehicleScreen() {
   }
 
   return (
-    <KeyboardAvoidingView behavior="padding" style={{ flex: 1, backgroundColor: t.background }}>
+    <KeyboardAvoidingView behavior="padding" style={{ flex: 1, backgroundColor: t.canvas }}>
       <ScrollView
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{ padding: spacing.lg, gap: spacing.md }}
@@ -97,7 +97,7 @@ export default function LinkVehicleScreen() {
             accessibilityLabel="Serial number"
             style={[
               styles.input,
-              { color: t.text, backgroundColor: t.surface, borderColor: error ? t.danger : t.border },
+              { color: t.text, backgroundColor: t.card, borderColor: error ? t.danger : t.border },
             ]}
           />
           <Text style={{ color: error ? t.danger : t.textMuted, fontSize: 13 }}>

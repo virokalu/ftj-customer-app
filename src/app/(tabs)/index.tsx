@@ -14,7 +14,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AlertRow, useOpenAlert } from "@/components/alert-row";
 import { OnTheWayCarousel } from "@/components/on-the-way";
-import { AppText, Button } from "@/components/ui";
+import { AppText, Button, raised } from "@/components/ui";
 import { useAlerts, useHome, useOnTheWay } from "@/features/vehicles/hooks";
 import { formatDate } from "@/features/vehicles/status";
 import { greeting, initials } from "@/lib/format";
@@ -40,7 +40,7 @@ export default function HomeScreen() {
   const isNewCustomer = home.data && home.data.activeCount === 0 && home.data.deliveredCount === 0;
 
   return (
-    <SafeAreaView edges={["top", "left", "right"]} style={{ flex: 1, backgroundColor: t.background }}>
+    <SafeAreaView edges={["top", "left", "right"]} style={{ flex: 1, backgroundColor: t.canvas }}>
       <ScrollView
         contentContainerStyle={{ paddingBottom: spacing.xl, gap: spacing.lg }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={t.accent} />}
@@ -97,7 +97,7 @@ export default function HomeScreen() {
                 ) : latestAlerts.length === 0 ? (
                   <QuietCard text="No updates yet. We'll let you know when something changes." />
                 ) : (
-                  <View style={[styles.panel, { backgroundColor: t.background, borderColor: t.border }]}>
+                  <View style={[styles.panel, raised, { backgroundColor: t.card, borderColor: t.border }]}>
                     {latestAlerts.map((a, i) => (
                       <View
                         key={a.id}
@@ -149,7 +149,7 @@ function Header({ name, unread }: { name: string | null; unread: number }) {
         accessibilityRole="button"
         accessibilityLabel={unread > 0 ? `Alerts, ${unread} unread` : "Alerts"}
         hitSlop={8}
-        style={[styles.circle, { backgroundColor: t.surface, borderColor: t.border }]}
+        style={[styles.circle, raised, { backgroundColor: t.card, borderColor: t.border }]}
       >
         <SymbolView
           name={{ ios: "bell", android: "notifications", web: "notifications" }}
@@ -236,7 +236,7 @@ function Shortcuts() {
           accessibilityLabel={s.label}
           style={({ pressed }) => [styles.shortcut, { opacity: pressed ? 0.6 : 1 }]}
         >
-          <View style={[styles.shortcutIcon, { backgroundColor: t.background, borderColor: t.border }]}>
+          <View style={[styles.shortcutIcon, raised, { backgroundColor: t.card, borderColor: t.border }]}>
             <SymbolView name={s.icon} size={20} tintColor={t.accent} />
           </View>
           <Text style={{ color: t.text, fontSize: 12, fontWeight: "500" }} numberOfLines={1}>
@@ -260,7 +260,8 @@ function StockTeaser() {
       style={({ pressed }) => [
         styles.panel,
         styles.teaser,
-        { backgroundColor: t.surface, borderColor: t.border, opacity: pressed ? 0.7 : 1 },
+        raised,
+        { backgroundColor: t.card, borderColor: t.border, opacity: pressed ? 0.7 : 1 },
       ]}
     >
       <View style={[styles.circle, { backgroundColor: t.accentSoft, borderColor: t.accentSoft }]}>
@@ -283,7 +284,7 @@ function StockTeaser() {
 function TeamCard() {
   const t = useTheme();
   return (
-    <View style={[styles.panel, styles.team, { backgroundColor: t.surface, borderColor: t.border }]}>
+    <View style={[styles.panel, styles.team, raised, { backgroundColor: t.card, borderColor: t.border }]}>
       <View style={[styles.circle, { backgroundColor: t.hero, borderColor: t.hero }]}>
         <SymbolView
           name={{ ios: "person.2.fill", android: "group", web: "group" }}
@@ -301,7 +302,7 @@ function TeamCard() {
         accessibilityRole="button"
         accessibilityLabel="Message the team"
         hitSlop={8}
-        style={[styles.circle, { backgroundColor: t.background, borderColor: t.border }]}
+        style={[styles.circle, { backgroundColor: t.control, borderColor: t.control }]}
       >
         <SymbolView
           name={{ ios: "bubble.left", android: "chat_bubble", web: "chat_bubble" }}
@@ -319,7 +320,8 @@ function WelcomeCard() {
     <View
       style={[
         styles.panel,
-        { backgroundColor: t.surface, borderColor: t.border, padding: spacing.lg, gap: spacing.sm },
+        raised,
+        { backgroundColor: t.card, borderColor: t.border, padding: spacing.lg, gap: spacing.sm },
       ]}
     >
       <Text style={{ color: t.text, fontSize: 18, fontWeight: "700" }}>Welcome to FTJ Exports</Text>
@@ -335,7 +337,9 @@ function WelcomeCard() {
 function QuietCard({ text }: { text: string }) {
   const t = useTheme();
   return (
-    <View style={[styles.panel, { backgroundColor: t.surface, borderColor: t.border, padding: spacing.md }]}>
+    <View
+      style={[styles.panel, raised, { backgroundColor: t.card, borderColor: t.border, padding: spacing.md }]}
+    >
       <AppText muted style={{ fontSize: 14 }}>
         {text}
       </AppText>
@@ -349,7 +353,8 @@ function RetryCard({ message, onRetry }: { message: string; onRetry: () => void 
     <View
       style={[
         styles.panel,
-        { backgroundColor: t.surface, borderColor: t.border, padding: spacing.md, gap: spacing.sm },
+        raised,
+        { backgroundColor: t.card, borderColor: t.border, padding: spacing.md, gap: spacing.sm },
       ]}
     >
       <AppText style={{ fontSize: 14 }}>{message}</AppText>

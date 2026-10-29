@@ -168,7 +168,7 @@ export function Chip({
         styles.chip,
         selected
           ? { backgroundColor: t.accent, borderColor: t.accent }
-          : { backgroundColor: t.background, borderColor: t.border },
+          : { backgroundColor: t.card, borderColor: t.border },
       ]}
     >
       <Text style={{ color: selected ? t.onAccent : t.text, fontSize: 14, fontWeight: "600" }}>{label}</Text>

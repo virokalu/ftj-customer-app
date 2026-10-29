@@ -23,7 +23,7 @@ export function statusTone(status: VehicleStatus, t: Theme): { fg: string; bg: s
     case "ARRIVED":
       return { fg: t.violet, bg: t.violetSoft };
     default:
-      return { fg: t.textMuted, bg: t.surface };
+      return { fg: t.textMuted, bg: t.canvas };
   }
 }
 

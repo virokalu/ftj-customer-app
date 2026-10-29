@@ -70,7 +70,7 @@ export default function VehiclesScreen() {
   const filtered = filters.status !== null || filters.brand !== null || filters.sort !== defaultFilters.sort;
 
   return (
-    <SafeAreaView edges={["top", "left", "right"]} style={{ flex: 1, backgroundColor: t.background }}>
+    <SafeAreaView edges={["top", "left", "right"]} style={{ flex: 1, backgroundColor: t.canvas }}>
       <FlatList
         data={rows}
         keyExtractor={(v) => v.id}
@@ -102,7 +102,7 @@ export default function VehiclesScreen() {
               </Pressable>
             </View>
 
-            <View style={[styles.segmented, { backgroundColor: t.surface }]} accessibilityRole="tablist">
+            <View style={[styles.segmented, { backgroundColor: t.control }]} accessibilityRole="tablist">
               <SegmentButton
                 label={`On the way${activeTotal !== null ? ` (${activeTotal})` : ""}`}
                 selected={tab === "active"}
@@ -116,7 +116,7 @@ export default function VehiclesScreen() {
             </View>
 
             <View style={styles.searchRow}>
-              <View style={[styles.search, { backgroundColor: t.surface }]}>
+              <View style={[styles.search, { backgroundColor: t.control }]}>
                 <SymbolView
                   name={{ ios: "magnifyingglass", android: "search", web: "search" }}
                   size={15}
@@ -141,7 +141,7 @@ export default function VehiclesScreen() {
                   accessibilityRole="button"
                   accessibilityLabel={filtered ? "Filters, active" : "Filters"}
                   hitSlop={6}
-                  style={[styles.filterButton, { backgroundColor: filtered ? t.accentSoft : t.surface }]}
+                  style={[styles.filterButton, { backgroundColor: filtered ? t.accentSoft : t.control }]}
                 >
                   <SymbolView
                     name={{
@@ -262,14 +262,19 @@ function SegmentButton({
       style={[
         styles.segment,
         selected && {
-          backgroundColor: t.background,
+          backgroundColor: t.controlSelected,
           borderColor: t.border,
           borderWidth: StyleSheet.hairlineWidth,
         },
       ]}
     >
       <Text
-        style={{ color: selected ? t.text : t.textMuted, fontSize: 14, fontWeight: selected ? "600" : "500" }}
+        style={{
+          color: t.text,
+          fontSize: 14,
+          fontWeight: selected ? "700" : "500",
+          opacity: selected ? 1 : 0.75,
+        }}
       >
         {label}
       </Text>
@@ -280,7 +285,7 @@ function SegmentButton({
 function Stat({ value, label }: { value: string; label: string }) {
   const t = useTheme();
   return (
-    <View style={[styles.stat, { backgroundColor: t.surface }]}>
+    <View style={[styles.stat, styles.raised, { backgroundColor: t.card, borderColor: t.border }]}>
       <Text style={{ color: t.text, fontSize: 26, fontWeight: "700" }}>{value}</Text>
       <Text style={{ color: t.textMuted, fontSize: 12 }}>{label}</Text>
     </View>
@@ -338,4 +343,12 @@ const styles = StyleSheet.create({
   chips: { gap: spacing.sm },
   stats: { flexDirection: "row", gap: spacing.sm },
   stat: { flex: 1, borderRadius: radius.lg, padding: spacing.md, gap: 2 },
+  // Same lift as the vehicle cards, so everything on the tinted page reads as one set of cards.
+  raised: {
+    borderWidth: StyleSheet.hairlineWidth,
+    shadowColor: "#000000",
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+  },
 });

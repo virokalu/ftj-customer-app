@@ -25,7 +25,7 @@ export function VehicleRow({ vehicle }: { vehicle: VehicleSummary }) {
       accessibilityLabel={`${vehicleTitle(vehicle)}, ${vehicle.serial}. ${detail ?? ""}`}
       style={({ pressed }) => [
         styles.card,
-        { backgroundColor: t.background, borderColor: t.border, opacity: pressed ? 0.7 : 1 },
+        { backgroundColor: t.card, borderColor: t.border, opacity: pressed ? 0.7 : 1 },
       ]}
     >
       <View style={styles.top}>
@@ -57,11 +57,16 @@ export function VehicleRow({ vehicle }: { vehicle: VehicleSummary }) {
 }
 
 const styles = StyleSheet.create({
+  // A raised card on the tinted page (`canvas`): border for dark mode, a soft shadow for light.
   card: {
     borderRadius: radius.lg,
     borderWidth: StyleSheet.hairlineWidth,
     padding: spacing.md,
     gap: spacing.md,
+    shadowColor: "#000000",
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
   },
   top: { flexDirection: "row", gap: spacing.md },
   thumb: { width: 92, height: 70, borderRadius: radius.md },

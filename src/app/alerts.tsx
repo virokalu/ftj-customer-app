@@ -12,7 +12,7 @@ import {
 import { AlertRow, useOpenAlert } from "@/components/alert-row";
 import { AppText, Button, Centered } from "@/components/ui";
 import { useAlerts, useMarkAlertsRead } from "@/features/vehicles/hooks";
-import { spacing, useTheme } from "@/theme/theme";
+import { radius, spacing, useTheme } from "@/theme/theme";
 
 // Alerts list (opened from the bell on Home). Grouped by UTC day as the API sends them.
 // TODO: load further pages (merge days by date) once accounts have more than 20 alerts.
@@ -26,7 +26,7 @@ export default function AlertsScreen() {
   const unread = data?.unreadCount ?? 0;
 
   return (
-    <View style={{ flex: 1, backgroundColor: t.background }}>
+    <View style={{ flex: 1, backgroundColor: t.canvas }}>
       <Stack.Screen
         options={{
           headerRight: () =>
@@ -62,9 +62,23 @@ export default function AlertsScreen() {
           renderSectionHeader={({ section }) => (
             <Text style={[styles.day, { color: t.textMuted }]}>{section.title}</Text>
           )}
-          renderItem={({ item }) => <AlertRow alert={item} onPress={() => openAlert(item, "alerts")} />}
+          // Each day is one card: the first and last rows of a section carry the rounded corners.
+          renderItem={({ item, index, section }) => (
+            <View
+              style={[
+                styles.cardRow,
+                { backgroundColor: t.card, borderColor: t.border },
+                index === 0 && styles.cardTop,
+                index === section.data.length - 1 && styles.cardBottom,
+              ]}
+            >
+              <AlertRow alert={item} onPress={() => openAlert(item, "alerts")} />
+            </View>
+          )}
           ItemSeparatorComponent={() => (
-            <View style={{ height: StyleSheet.hairlineWidth, backgroundColor: t.border, marginLeft: 52 }} />
+            <View style={[styles.cardRow, { backgroundColor: t.card, borderColor: t.border }]}>
+              <View style={{ height: StyleSheet.hairlineWidth, backgroundColor: t.border, marginLeft: 52 }} />
+            </View>
           )}
           ListEmptyComponent={
             <AppText muted style={{ marginTop: spacing.xl, textAlign: "center" }}>
@@ -94,6 +108,21 @@ function dayLabel(date: string, now = new Date()): string {
 }
 
 const styles = StyleSheet.create({
+  cardRow: {
+    paddingHorizontal: spacing.md,
+    borderLeftWidth: StyleSheet.hairlineWidth,
+    borderRightWidth: StyleSheet.hairlineWidth,
+  },
+  cardTop: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopLeftRadius: radius.lg,
+    borderTopRightRadius: radius.lg,
+  },
+  cardBottom: {
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomLeftRadius: radius.lg,
+    borderBottomRightRadius: radius.lg,
+  },
   day: {
     fontSize: 13,
     fontWeight: "600",

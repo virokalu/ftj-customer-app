@@ -52,7 +52,7 @@ export default function NotificationSettingsScreen() {
   return (
     <ScrollView
       contentInsetAdjustmentBehavior="automatic"
-      style={{ backgroundColor: t.background }}
+      style={{ backgroundColor: t.canvas }}
       contentContainerStyle={{ padding: spacing.md, gap: spacing.lg, paddingBottom: spacing.xl }}
     >
       {saveError ? (

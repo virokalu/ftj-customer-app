@@ -99,7 +99,7 @@ function DetailsForm({ me }: { me: Me }) {
   }
 
   return (
-    <KeyboardAvoidingView behavior="padding" style={{ flex: 1, backgroundColor: t.background }}>
+    <KeyboardAvoidingView behavior="padding" style={{ flex: 1, backgroundColor: t.canvas }}>
       <ScrollView
         keyboardShouldPersistTaps="handled"
         contentInsetAdjustmentBehavior="automatic"
@@ -108,7 +108,7 @@ function DetailsForm({ me }: { me: Me }) {
         <View style={{ gap: spacing.xs }}>
           <Text style={[styles.label, { color: t.textMuted }]}>Email</Text>
           <View
-            style={[styles.input, styles.readOnly, { backgroundColor: t.surface, borderColor: t.border }]}
+            style={[styles.input, styles.readOnly, { backgroundColor: t.control, borderColor: t.border }]}
           >
             <Text style={{ color: t.textMuted, fontSize: 16 }}>{me.email ?? "-"}</Text>
           </View>
@@ -135,7 +135,7 @@ function DetailsForm({ me }: { me: Me }) {
                 styles.input,
                 {
                   color: t.text,
-                  backgroundColor: t.surface,
+                  backgroundColor: t.card,
                   borderColor: errors[f.key] ? t.danger : t.border,
                 },
               ]}

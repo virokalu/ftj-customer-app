@@ -5,7 +5,7 @@ import { Alert, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ChoiceRow, SettingsGroup, SettingsRow } from "@/components/settings-ui";
-import { Button } from "@/components/ui";
+import { Button, raised } from "@/components/ui";
 import { fromServerTheme, setAppearance } from "@/features/account/appearance";
 import { useUpdateMe } from "@/features/account/hooks";
 import { useAuth } from "@/features/auth/auth-context";
@@ -69,11 +69,11 @@ export default function AccountScreen() {
     : null;
 
   return (
-    <SafeAreaView edges={["top", "left", "right"]} style={{ flex: 1, backgroundColor: t.background }}>
+    <SafeAreaView edges={["top", "left", "right"]} style={{ flex: 1, backgroundColor: t.canvas }}>
       <ScrollView contentContainerStyle={{ padding: spacing.md, gap: spacing.lg, paddingBottom: spacing.xl }}>
         <Text style={[styles.title, { color: t.text }]}>Account</Text>
 
-        <View style={[styles.profile, { backgroundColor: t.surface }]}>
+        <View style={[styles.profile, raised, { backgroundColor: t.card, borderColor: t.border }]}>
           <View style={[styles.avatar, { backgroundColor: t.accent }]}>
             <Text style={{ color: t.onAccent, fontSize: 20, fontWeight: "700" }}>
               {me ? initials(me.name) : ""}

@@ -31,7 +31,7 @@ export default function TabsLayout() {
         headerShown: false,
         tabBarActiveTintColor: t.accentText,
         tabBarInactiveTintColor: t.textMuted,
-        tabBarStyle: { backgroundColor: t.background, borderTopColor: t.border },
+        tabBarStyle: { backgroundColor: t.card, borderTopColor: t.border },
       }}
     >
       <Tabs.Screen

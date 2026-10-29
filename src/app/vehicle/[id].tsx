@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { AppText, Button, Centered } from "@/components/ui";
+import { AppText, Button, Centered, raised } from "@/components/ui";
 import { PhotoViewer } from "@/components/photo-viewer";
 import { StatusChip } from "@/components/vehicle-bits";
 import {
@@ -59,7 +59,8 @@ export default function VehicleScreen() {
       hitSlop={8}
       style={[
         styles.back,
-        { top: insets.top + spacing.sm, backgroundColor: t.background, borderColor: t.border },
+        raised,
+        { top: insets.top + spacing.sm, backgroundColor: t.card, borderColor: t.border },
       ]}
     >
       <SymbolView
@@ -72,7 +73,7 @@ export default function VehicleScreen() {
 
   if (vehicle.isPending) {
     return (
-      <View style={{ flex: 1, backgroundColor: t.background }}>
+      <View style={{ flex: 1, backgroundColor: t.canvas }}>
         <Centered>
           <ActivityIndicator color={t.accent} />
         </Centered>
@@ -85,7 +86,7 @@ export default function VehicleScreen() {
     // 404 covers "not released yet", "unlinked" and "gone": the API never says which (contract §4).
     const notFound = vehicle.error instanceof ApiError && vehicle.error.status === 404;
     return (
-      <View style={{ flex: 1, backgroundColor: t.background }}>
+      <View style={{ flex: 1, backgroundColor: t.canvas }}>
         <Centered>
           <View style={{ paddingHorizontal: spacing.xl, gap: spacing.md, alignItems: "center" }}>
             <AppText style={{ fontSize: 18, fontWeight: "700", textAlign: "center" }}>
@@ -116,7 +117,7 @@ export default function VehicleScreen() {
   const subtitle = [v.year, v.serial, v.chassisNo].filter(Boolean).join(" · ");
 
   return (
-    <View style={{ flex: 1, backgroundColor: t.background }}>
+    <View style={{ flex: 1, backgroundColor: t.canvas }}>
       <ScrollView
         contentContainerStyle={{ paddingBottom: 96 + insets.bottom }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={t.accent} />}
@@ -157,7 +158,7 @@ export default function VehicleScreen() {
           styles.bottomBar,
           {
             paddingBottom: insets.bottom + spacing.sm,
-            backgroundColor: t.background,
+            backgroundColor: t.card,
             borderTopColor: t.border,
           },
         ]}

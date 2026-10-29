@@ -11,6 +11,7 @@ import {
   useWindowDimensions,
 } from "react-native";
 
+import { raised } from "@/components/ui";
 import { PortTrack, VehicleCover } from "@/components/vehicle-bits";
 import { openDocument } from "@/features/documents/open-document";
 import { formatDate, journeyLine, journeyProgress } from "@/features/vehicles/status";
@@ -33,8 +34,8 @@ export function Gallery({ photos, onOpen }: { photos: Photo[]; onOpen: (index: n
 
   if (photos.length === 0) {
     return (
-      <View style={[styles.gallery, styles.soon, { backgroundColor: t.surface }]}>
-        <View style={[styles.soonIcon, { backgroundColor: t.background }]}>
+      <View style={[styles.gallery, styles.soon, { backgroundColor: t.control }]}>
+        <View style={[styles.soonIcon, { backgroundColor: t.card }]}>
           <SymbolView
             name={{ ios: "camera", android: "photo_camera", web: "photo_camera" }}
             size={22}
@@ -95,7 +96,7 @@ export function StatusCard({
   const done = steps?.filter((s) => s.completed).length ?? 0;
 
   return (
-    <View style={[styles.panel, { backgroundColor: t.background, borderColor: t.border }]}>
+    <View style={[styles.panel, raised, { backgroundColor: t.card, borderColor: t.border }]}>
       <Text style={[styles.caption, { color: t.textMuted }]}>Current status</Text>
       <Text style={[styles.statusLine, { color: t.text }]}>{journeyLine(vehicle)}</Text>
       {steps ? (
@@ -166,7 +167,7 @@ const tabs: { key: VehicleTab; label: string }[] = [
 export function Segmented({ value, onChange }: { value: VehicleTab; onChange: (v: VehicleTab) => void }) {
   const t = useTheme();
   return (
-    <View style={[styles.segmented, { backgroundColor: t.surface }]} accessibilityRole="tablist">
+    <View style={[styles.segmented, { backgroundColor: t.control }]} accessibilityRole="tablist">
       {tabs.map((tab) => {
         const selected = tab.key === value;
         return (
@@ -178,7 +179,7 @@ export function Segmented({ value, onChange }: { value: VehicleTab; onChange: (v
             style={[
               styles.segmentButton,
               selected && {
-                backgroundColor: t.background,
+                backgroundColor: t.controlSelected,
                 borderColor: t.border,
                 borderWidth: StyleSheet.hairlineWidth,
               },
@@ -222,7 +223,9 @@ export function OverviewTab({
         {documentsLoading ? (
           <ActivityIndicator color={t.accent} />
         ) : (
-          <View style={[styles.panel, styles.list, { backgroundColor: t.background, borderColor: t.border }]}>
+          <View
+            style={[styles.panel, styles.list, raised, { backgroundColor: t.card, borderColor: t.border }]}
+          >
             {/* EC and BL are always listed, Ready or Pending, because the customer waits for them. */}
             <DocumentRow
               type="EC"
@@ -267,7 +270,7 @@ export function OverviewTab({
       <View style={{ gap: spacing.sm }}>
         <SectionLabel>Shipping</SectionLabel>
         <View
-          style={[styles.panel, { backgroundColor: t.background, borderColor: t.border, gap: spacing.md }]}
+          style={[styles.panel, raised, { backgroundColor: t.card, borderColor: t.border, gap: spacing.md }]}
         >
           <PortTrack
             from={vehicle.portOfLoading}
@@ -341,7 +344,7 @@ function DocumentRow({
       accessibilityLabel={`${label.name}. ${ready ? "Ready. Opens the document" : `Pending. ${pendingText}`}`}
       style={({ pressed }) => [styles.docRow, { opacity: pressed ? 0.6 : 1 }]}
     >
-      <View style={[styles.docBadge, { backgroundColor: ready ? t.accentSoft : t.surface }]}>
+      <View style={[styles.docBadge, { backgroundColor: ready ? t.accentSoft : t.canvas }]}>
         <Text style={{ color: ready ? t.accentText : t.textMuted, fontSize: 11, fontWeight: "700" }}>
           {label.short}
         </Text>
@@ -367,7 +370,7 @@ function DocumentRow({
           tintColor={t.textMuted}
         />
       ) : (
-        <View style={[styles.pill, { backgroundColor: t.surface }]}>
+        <View style={[styles.pill, { backgroundColor: t.canvas }]}>
           <Text style={{ color: t.textMuted, fontSize: 11, fontWeight: "600" }}>Pending</Text>
         </View>
       )}
@@ -386,7 +389,7 @@ function Fact({
 }) {
   const t = useTheme();
   return (
-    <View style={[styles.panel, styles.fact, { backgroundColor: t.background, borderColor: t.border }]}>
+    <View style={[styles.panel, styles.fact, raised, { backgroundColor: t.card, borderColor: t.border }]}>
       <SymbolView name={icon} size={16} tintColor={t.accent} />
       <Text style={[styles.factValue, { color: t.text }]} numberOfLines={1}>
         {value ?? "-"}
@@ -429,7 +432,8 @@ export function TimelineTab({
       <View
         style={[
           styles.panel,
-          { backgroundColor: t.background, borderColor: t.border, paddingVertical: spacing.sm },
+          raised,
+          { backgroundColor: t.card, borderColor: t.border, paddingVertical: spacing.sm },
         ]}
       >
         {steps.map((step, i) => {
@@ -450,7 +454,7 @@ export function TimelineTab({
                     step.completed
                       ? { backgroundColor: t.accent, borderColor: t.accent }
                       : isNext
-                        ? { backgroundColor: t.background, borderColor: t.accent }
+                        ? { backgroundColor: t.card, borderColor: t.accent }
                         : { backgroundColor: t.border, borderColor: t.border },
                   ]}
                 >
@@ -506,7 +510,7 @@ export function PhotosTab({
   if (loading || !photos) return <ActivityIndicator color={t.accent} />;
   if (photos.length === 0) {
     return (
-      <View style={[styles.panel, { backgroundColor: t.surface, borderColor: t.border }]}>
+      <View style={[styles.panel, raised, { backgroundColor: t.card, borderColor: t.border }]}>
         <Text style={{ color: t.textMuted, fontSize: 14 }}>
           Photos will appear here once our team adds them.
         </Text>

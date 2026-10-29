@@ -2,6 +2,7 @@ import { router } from "expo-router";
 import { useState } from "react";
 import { FlatList, Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-native";
 
+import { raised } from "@/components/ui";
 import { PortTrack, StatusChip, VehicleCover } from "@/components/vehicle-bits";
 import { journeyLine, journeyProgress, vehicleTitle } from "@/features/vehicles/status";
 import type { VehicleSummary } from "@/lib/api/schemas";
@@ -48,10 +49,12 @@ function OnTheWayCard({ vehicle, width }: { vehicle: VehicleSummary; width: numb
       accessibilityLabel={`${journeyLine(vehicle)}. ${subtitle}`}
       style={({ pressed }) => [
         styles.card,
-        { width, backgroundColor: t.background, borderColor: t.border, opacity: pressed ? 0.85 : 1 },
+        raised,
+        { width, backgroundColor: t.card, borderColor: t.border, opacity: pressed ? 0.85 : 1 },
       ]}
     >
-      <View>
+      {/* Clips the photo to the rounded corners; on the outer card it would also clip the shadow. */}
+      <View style={styles.clip}>
         <VehicleCover photoId={vehicle.coverPhotoId} style={styles.cover} />
         <View style={styles.chip}>
           <StatusChip status={vehicle.status} />
@@ -94,7 +97,8 @@ function Dots({ count, active }: { count: number; active: number }) {
 }
 
 const styles = StyleSheet.create({
-  card: { borderRadius: radius.lg, borderWidth: StyleSheet.hairlineWidth, overflow: "hidden" },
+  card: { borderRadius: radius.lg, borderWidth: StyleSheet.hairlineWidth },
+  clip: { borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg, overflow: "hidden" },
   cover: { height: 150 },
   chip: { position: "absolute", top: spacing.sm, left: spacing.sm },
   body: { padding: spacing.md, gap: 2 },

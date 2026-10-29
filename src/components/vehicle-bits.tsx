@@ -41,7 +41,7 @@ export function VehicleCover({
   const showPhoto = photoId && token && !failed && !config.useMocks;
 
   return (
-    <View style={[{ backgroundColor: t.surface, overflow: "hidden" }, style]}>
+    <View style={[{ backgroundColor: t.canvas, overflow: "hidden" }, style]}>
       {showPhoto ? (
         <Image
           source={{

@@ -8,7 +8,7 @@ import { radius, spacing, useTheme } from "@/theme/theme";
 export function Screen({ children }: { children: ReactNode }) {
   const t = useTheme();
   return (
-    <SafeAreaView edges={["top", "left", "right"]} style={{ flex: 1, backgroundColor: t.background }}>
+    <SafeAreaView edges={["top", "left", "right"]} style={{ flex: 1, backgroundColor: t.canvas }}>
       <View style={{ flex: 1, paddingHorizontal: spacing.md }}>{children}</View>
     </SafeAreaView>
   );
@@ -44,7 +44,7 @@ export function Button({
   const t = useTheme();
   const primary = variant === "primary";
   const danger = variant === "danger";
-  const fill = primary ? t.accent : danger ? t.danger : t.surface;
+  const fill = primary ? t.accent : danger ? t.danger : t.card;
   const label = primary ? t.onAccent : danger ? t.onDanger : t.text;
 
   return (
@@ -80,14 +80,16 @@ export function Card({ children }: { children: ReactNode }) {
   const t = useTheme();
   return (
     <View
-      style={{
-        backgroundColor: t.surface,
-        borderColor: t.border,
-        borderWidth: StyleSheet.hairlineWidth,
-        borderRadius: radius.lg,
-        padding: spacing.md,
-        gap: spacing.xs,
-      }}
+      style={[
+        raised,
+        {
+          backgroundColor: t.card,
+          borderColor: t.border,
+          borderRadius: radius.lg,
+          padding: spacing.md,
+          gap: spacing.xs,
+        },
+      ]}
     >
       {children}
     </View>
@@ -101,6 +103,21 @@ export function Centered({ children }: { children: ReactNode }) {
     </View>
   );
 }
+
+/**
+ * The app's card look: a `card`-coloured panel raised off the `canvas` page with a hairline
+ * border (what separates it in dark mode) and a soft shadow (what lifts it in light mode).
+ * Pair it with `{ backgroundColor: t.card, borderColor: t.border }` and the panel's own radius.
+ */
+export const raised = StyleSheet.create({
+  card: {
+    borderWidth: StyleSheet.hairlineWidth,
+    shadowColor: "#000000",
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+  },
+}).card;
 
 const styles = StyleSheet.create({
   button: {
