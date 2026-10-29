@@ -1,4 +1,4 @@
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { useMemo, useState } from "react";
 import {
@@ -33,7 +33,10 @@ type Tab = "active" | "history";
 // "Purchase history" (delivered cars, a count and "customer since"; never any amounts).
 export default function VehiclesScreen() {
   const t = useTheme();
-  const [tab, setTab] = useState<Tab>("active");
+  // The selected tab lives in the URL (?tab=history), so Home's "History" shortcut can open it.
+  const params = useLocalSearchParams<{ tab?: string }>();
+  const tab: Tab = params.tab === "history" ? "history" : "active";
+  const setTab = (next: Tab) => router.setParams({ tab: next === "history" ? "history" : undefined });
   const [search, setSearch] = useState("");
   const [filters, setFilters] = useState<ListFilters>(defaultFilters);
   const [sheetOpen, setSheetOpen] = useState(false);

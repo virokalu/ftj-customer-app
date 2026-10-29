@@ -1,5 +1,5 @@
 import { Link, router } from "expo-router";
-import { SymbolView } from "expo-symbols";
+import { SymbolView, type SymbolViewProps } from "expo-symbols";
 import type { ReactNode } from "react";
 import {
   ActivityIndicator,
@@ -116,6 +116,17 @@ export default function HomeScreen() {
         )}
 
         <Padded>
+          <Shortcuts />
+        </Padded>
+
+        <View style={{ gap: spacing.sm }}>
+          <SectionHeader title="New in stock" action={{ label: "Browse", href: "/stock" }} />
+          <Padded>
+            <StockTeaser />
+          </Padded>
+        </View>
+
+        <Padded>
           <TeamCard />
         </Padded>
       </ScrollView>
@@ -171,7 +182,7 @@ function SectionHeader({
   action,
 }: {
   title: string;
-  action?: { label: string; href: "/vehicles" | "/alerts" };
+  action?: { label: string; href: "/vehicles" | "/alerts" | "/stock" };
 }) {
   const t = useTheme();
   return (
@@ -185,6 +196,87 @@ function SectionHeader({
         </Link>
       ) : null}
     </View>
+  );
+}
+
+// The four shortcuts under "New for you" (sheet 2). The design's "Saved" is replaced by
+// "Updates": saved vehicles are not built in the API and must not be offered (guide §1).
+const shortcuts: { label: string; icon: SymbolViewProps["name"]; go: () => void }[] = [
+  {
+    label: "History",
+    icon: { ios: "list.bullet", android: "list", web: "list" },
+    go: () => router.push({ pathname: "/vehicles", params: { tab: "history" } }),
+  },
+  {
+    label: "Updates",
+    icon: { ios: "bell", android: "notifications", web: "notifications" },
+    go: () => router.push("/alerts"),
+  },
+  {
+    label: "Link a car",
+    icon: { ios: "link", android: "link", web: "link" },
+    go: () => router.push("/link-vehicle"),
+  },
+  {
+    label: "Help",
+    icon: { ios: "bubble.left", android: "chat_bubble", web: "chat_bubble" },
+    go: () => router.push("/settings/help"),
+  },
+];
+
+function Shortcuts() {
+  const t = useTheme();
+  return (
+    <View style={styles.shortcuts}>
+      {shortcuts.map((s) => (
+        <Pressable
+          key={s.label}
+          onPress={s.go}
+          accessibilityRole="button"
+          accessibilityLabel={s.label}
+          style={({ pressed }) => [styles.shortcut, { opacity: pressed ? 0.6 : 1 }]}
+        >
+          <View style={[styles.shortcutIcon, { backgroundColor: t.background, borderColor: t.border }]}>
+            <SymbolView name={s.icon} size={20} tintColor={t.accent} />
+          </View>
+          <Text style={{ color: t.text, fontSize: 12, fontWeight: "500" }} numberOfLines={1}>
+            {s.label}
+          </Text>
+        </Pressable>
+      ))}
+    </View>
+  );
+}
+
+// Stock is not built in the customer API yet (contract §11): no vehicles, no prices are
+// invented here. Replace with the stock cards (sheet 4) once the API serves them.
+function StockTeaser() {
+  const t = useTheme();
+  return (
+    <Pressable
+      onPress={() => router.push("/stock")}
+      accessibilityRole="button"
+      accessibilityLabel="New in stock, coming soon"
+      style={({ pressed }) => [
+        styles.panel,
+        styles.teaser,
+        { backgroundColor: t.surface, borderColor: t.border, opacity: pressed ? 0.7 : 1 },
+      ]}
+    >
+      <View style={[styles.circle, { backgroundColor: t.accentSoft, borderColor: t.accentSoft }]}>
+        <SymbolView
+          name={{ ios: "car.2", android: "garage", web: "garage" }}
+          size={18}
+          tintColor={t.accent}
+        />
+      </View>
+      <View style={{ flex: 1 }}>
+        <Text style={{ color: t.text, fontSize: 15, fontWeight: "600" }}>Stock is coming soon</Text>
+        <Text style={{ color: t.textMuted, fontSize: 13 }}>
+          Browse vehicles available from Japan, right here in the app.
+        </Text>
+      </View>
+    </Pressable>
   );
 }
 
@@ -310,5 +402,16 @@ const styles = StyleSheet.create({
   },
   sectionTitle: { fontSize: 20, fontWeight: "700" },
   panel: { borderRadius: radius.lg, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: spacing.md },
+  shortcuts: { flexDirection: "row", justifyContent: "space-between" },
+  shortcut: { flex: 1, alignItems: "center", gap: 6 },
+  shortcutIcon: {
+    width: 52,
+    height: 52,
+    borderRadius: 14,
+    borderWidth: StyleSheet.hairlineWidth,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  teaser: { flexDirection: "row", alignItems: "center", gap: spacing.md, paddingVertical: spacing.md },
   team: { flexDirection: "row", alignItems: "center", gap: spacing.md, paddingVertical: spacing.md },
 });
