@@ -53,7 +53,14 @@ const booked = vehicle(2, "Nissan", "X-Trail", "BOOKING_RECEIVED", "2026-11-05T0
 const vehicles = [
   vehicle(3, "Toyota", "Hilux", "PENDING", null, null),
   booked,
-  vehicle(1, "Toyota", "Land Cruiser Prado", "SHIPPED", "2026-10-12T00:00:00.000Z", "2026-11-20T00:00:00.000Z"),
+  vehicle(
+    1,
+    "Toyota",
+    "Land Cruiser Prado",
+    "SHIPPED",
+    "2026-10-12T00:00:00.000Z",
+    "2026-11-20T00:00:00.000Z",
+  ),
 ];
 
 const detail = (v: (typeof vehicles)[number]) => ({
@@ -63,6 +70,69 @@ const detail = (v: (typeof vehicles)[number]) => ({
   shippingMethod: "RORO",
   containerNumber: null,
 });
+
+const stepTypes = [
+  ["BOUGHT", "Bought"],
+  ["AUCTION_BILL_PAID", "Auction bill paid"],
+  ["AT_EXPORT_YARD", "At export yard"],
+  ["EXPORT_CERT_ISSUED", "Export certificate issued"],
+  ["BOOKING_RECEIVED", "Booking received"],
+  ["SHIPPED", "Shipped"],
+  ["BL_ISSUED", "Bill of lading issued"],
+  ["ARRIVED", "Arrived"],
+  ["DELIVERED", "Delivered"],
+] as const;
+
+// How many of the 9 steps are done for each status (fake data only).
+const stepsDone: Record<string, number> = {
+  PENDING: 2,
+  BOOKING_RECEIVED: 5,
+  SHIPPED: 7,
+  ARRIVED: 8,
+  DELIVERED: 9,
+};
+
+const timelineFor = (v: (typeof vehicles)[number]) =>
+  stepTypes.map(([type, label], i) => {
+    const completed = i < (stepsDone[v.status] ?? 0);
+    return {
+      type,
+      label,
+      completed,
+      occurredAt: completed ? `2026-09-${String(10 + i * 2).padStart(2, "0")}T00:00:00.000Z` : null,
+    };
+  });
+
+const hoursAgo = (h: number) => new Date(Date.now() - h * 3_600_000).toISOString();
+const alerts = [
+  {
+    id: "ckfake0alert01",
+    event: "DEPARTURE_REMINDER",
+    title: "Departure reminder",
+    body: `${booked.serial} is due to depart in 7 days.`,
+    isRead: false,
+    vehicleId: booked.id,
+    createdAt: hoursAgo(4),
+  },
+  {
+    id: "ckfake0alert02",
+    event: "BOOKING_RECEIVED",
+    title: "Booking received",
+    body: `Your booking for ${booked.serial} has been received.`,
+    isRead: false,
+    vehicleId: booked.id,
+    createdAt: hoursAgo(72),
+  },
+  {
+    id: "ckfake0alert03",
+    event: "CHAT_MESSAGE",
+    title: "New message",
+    body: "You have a new message from the CargoDev team.",
+    isRead: true,
+    vehicleId: null,
+    createdAt: hoursAgo(120),
+  },
+];
 
 export async function mockRequest(
   path: string,
@@ -106,11 +176,71 @@ export async function mockRequest(
       recentVehicles: vehicles,
     });
   }
-  if (route === "/vehicles") return ok({ rows: vehicles, total: vehicles.length, page: 1, pageSize: 20 });
-  if (route.startsWith("/vehicles/")) {
-    const v = vehicles.find((x) => x.id === decodeURIComponent(route.slice("/vehicles/".length)));
-    return v ? ok(detail(v)) : fail(404, "NOT_FOUND", "Vehicle not found.");
+  if (route === "/alerts") {
+    const days = new Map<string, typeof alerts>();
+    for (const a of alerts)
+      days.set(a.createdAt.slice(0, 10), [...(days.get(a.createdAt.slice(0, 10)) ?? []), a]);
+    return ok({
+      days: [...days].map(([date, list]) => ({ date, alerts: list })),
+      unreadCount: alerts.filter((a) => !a.isRead).length,
+      total: alerts.length,
+      page: 1,
+      pageSize: 20,
+    });
   }
+  if (route === "/alerts/mark-read" && method === "POST") {
+    const { ids, all } = (body ?? {}) as { ids?: string[]; all?: boolean };
+    let updated = 0;
+    for (const a of alerts) {
+      if (!a.isRead && (all || ids?.includes(a.id))) {
+        a.isRead = true;
+        updated++;
+      }
+    }
+    return ok({ updated });
+  }
+  if (route === "/vehicles") return ok({ rows: vehicles, total: vehicles.length, page: 1, pageSize: 20 });
+  if (route === "/vehicles/link-requests" && method === "POST") {
+    const { serial } = (body ?? {}) as { serial?: string };
+    if (
+      !/^(FC|FL)\d{1,9}$/.test(
+        String(serial ?? "")
+          .trim()
+          .toUpperCase(),
+      )
+    ) {
+      return fail(400, "VALIDATION", "Enter a serial number such as FC1024.");
+    }
+    return ok({ accepted: true }, 202);
+  }
+  if (route.startsWith("/vehicles/")) {
+    const [id = "", sub] = route.slice("/vehicles/".length).split("/");
+    const v = vehicles.find((x) => x.id === decodeURIComponent(id));
+    if (!v) return fail(404, "NOT_FOUND", "Vehicle not found.");
+    if (sub === "timeline") return ok(timelineFor(v));
+    // Mock mode has no image files, so no photo ids either ("Photos coming soon").
+    if (sub === "photos") return ok([]);
+    return ok(detail(v));
+  }
+  if (route === "/documents") {
+    // The shipped vehicle's export certificate is ready; everything else is pending.
+    const shipped = vehicles.find((x) => x.status === "SHIPPED");
+    const rows =
+      shipped && path.includes(shipped.id)
+        ? [
+            {
+              id: "ckfake0doc01",
+              name: `Export certificate ${shipped.serial}`,
+              type: "EC",
+              createdAt: "2026-09-22T09:00:00.000Z",
+              vehicle: { id: shipped.id, serial: shipped.serial },
+            },
+          ]
+        : [];
+    return ok({ rows, total: rows.length, page: 1, pageSize: 50 });
+  }
+  if (route === "/purchase-history")
+    return ok({ deliveredCount: 0, customerSince: "2026-10-01T09:00:00.000Z" });
 
   return fail(404, "NOT_FOUND", "Route not found.");
 }

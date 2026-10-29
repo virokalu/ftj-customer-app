@@ -96,6 +96,32 @@ function refreshSession(): Promise<boolean> {
   return refreshInFlight;
 }
 
+// Seconds until the JWT's `exp`, or 0 when it cannot be read. Decoding only: the server
+// verifies the signature, the app just needs to know when to refresh.
+function secondsLeft(accessToken: string): number {
+  try {
+    const payload = accessToken.split(".")[1] ?? "";
+    const json = atob(payload.replace(/-/g, "+").replace(/_/g, "/"));
+    const exp = (JSON.parse(json) as { exp?: number }).exp ?? 0;
+    return exp - Date.now() / 1000;
+  } catch {
+    return 0;
+  }
+}
+
+/**
+ * An access token with at least two minutes left, refreshing first if needed (through the same
+ * single-flight). For requests that cannot await a 401-and-retry themselves: image headers and
+ * file downloads. Null when signed out.
+ */
+export async function freshAccessToken(): Promise<string | null> {
+  if (config.useMocks) return (await loadTokens())?.accessToken ?? null;
+  const tokens = await loadTokens();
+  if (!tokens) return null;
+  if (secondsLeft(tokens.accessToken) > 120) return tokens.accessToken;
+  return (await refreshSession()) ? ((await loadTokens())?.accessToken ?? null) : null;
+}
+
 /**
  * Typed request. The zod schema validates the response at the boundary ("parse, don't
  * trust"): if the server sends something unexpected we fail here with a clear error,

@@ -70,6 +70,116 @@ export const home = z.object({
 });
 export type Home = z.infer<typeof home>;
 
+// Always exactly 9 steps, in order (contract §4.4). Steps can complete out of order: never
+// infer an earlier step from a later one.
+export const timelineStepType = z
+  .enum([
+    "BOUGHT",
+    "AUCTION_BILL_PAID",
+    "AT_EXPORT_YARD",
+    "EXPORT_CERT_ISSUED",
+    "BOOKING_RECEIVED",
+    "SHIPPED",
+    "BL_ISSUED",
+    "ARRIVED",
+    "DELIVERED",
+    "UNKNOWN",
+  ])
+  .catch("UNKNOWN");
+export type TimelineStepType = z.infer<typeof timelineStepType>;
+
+export const timelineStep = z.object({
+  type: timelineStepType,
+  label: z.string(), // English fallback; the app uses its own wording per type
+  completed: z.boolean(),
+  occurredAt: z.string().nullable(),
+});
+export type TimelineStep = z.infer<typeof timelineStep>;
+export const timeline = z.array(timelineStep);
+
+// Released photos, oldest first. Bytes come from GET /photos/:id/image (contract §5.1).
+export const photoList = z.array(z.object({ id: z.string(), createdAt: z.string() }));
+export type Photo = z.infer<typeof photoList>[number];
+
+export const documentType = z
+  .enum([
+    "LC",
+    "EC",
+    "ED",
+    "BL",
+    "INSPECTION_REPORT",
+    "SHAKEN_SHO",
+    "FREIGHT_INVOICE",
+    "PURCHASE_INVOICE",
+    "SALES_INVOICE",
+    "MEGI_HENKO",
+    "CASH_RECEIPT",
+    "OTHER",
+  ])
+  .catch("OTHER");
+export type DocumentType = z.infer<typeof documentType>;
+
+export const vehicleDocument = z.object({
+  id: z.string(),
+  name: z.string(), // staff-entered plain text; never used as a file name
+  type: documentType,
+  createdAt: z.string(),
+  vehicle: z.object({ id: z.string(), serial: z.string() }),
+});
+export type VehicleDocument = z.infer<typeof vehicleDocument>;
+
+export const documentListResponse = z.object({
+  rows: z.array(vehicleDocument),
+  total: z.number().int(),
+  page: z.number().int(),
+  pageSize: z.number().int(),
+});
+
+// Exactly two values: no amounts of any kind (contract §4.7).
+export const purchaseHistory = z.object({
+  deliveredCount: z.number().int(),
+  customerSince: z.string(),
+});
+export type PurchaseHistory = z.infer<typeof purchaseHistory>;
+
+// Alert types (contract §7.2). Unknown events fall back to "UNKNOWN": show title/body, open the list.
+export const alertEvent = z
+  .enum([
+    "BOOKING_RECEIVED",
+    "PHOTOS_ADDED",
+    "DOCUMENTS_READY",
+    "DEPARTURE_REMINDER",
+    "NEW_STOCK",
+    "CHAT_MESSAGE",
+    "LINK_REQUEST_APPROVED",
+    "LINK_REQUEST_REJECTED",
+    "UNKNOWN",
+  ])
+  .catch("UNKNOWN");
+export type AlertEvent = z.infer<typeof alertEvent>;
+
+export const alert = z.object({
+  id: z.string(),
+  event: alertEvent,
+  title: z.string(),
+  body: z.string(),
+  isRead: z.boolean(),
+  // null when the customer may no longer see that vehicle.
+  vehicleId: z.string().nullable(),
+  createdAt: z.string(),
+});
+export type Alert = z.infer<typeof alert>;
+
+// Newest first, grouped by UTC day. unreadCount is for the whole account (the bell badge).
+export const alertsResponse = z.object({
+  days: z.array(z.object({ date: z.string(), alerts: z.array(alert) })),
+  unreadCount: z.number().int(),
+  total: z.number().int(),
+  page: z.number().int(),
+  pageSize: z.number().int(),
+});
+export type AlertsResponse = z.infer<typeof alertsResponse>;
+
 export const me = z.object({
   id: z.string(),
   name: z.string(),

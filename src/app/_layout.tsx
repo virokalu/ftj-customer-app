@@ -64,7 +64,13 @@ function RootNavigator() {
       </Stack.Protected>
       <Stack.Protected guard={isSignedIn}>
         <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="vehicle/[id]" options={{ headerShown: true, title: "Vehicle" }} />
+        {/* The page draws its own back button over the gallery (sheet 3). */}
+        <Stack.Screen name="vehicle/[id]" />
+        <Stack.Screen name="alerts" options={{ headerShown: true, title: "Updates", headerBackTitle: "Home" }} />
+        <Stack.Screen
+          name="link-vehicle"
+          options={{ headerShown: true, title: "Link a vehicle", presentation: "modal" }}
+        />
       </Stack.Protected>
     </Stack>
   );

@@ -17,6 +17,15 @@ const light = {
   onHero: "#FFFFFF",
   onHeroMuted: "#C9C9CE",
   heroChip: "rgba(255,255,255,0.08)", // small pills on the hero panel
+  // Status chips: a text colour plus a soft backdrop for each shipping stage.
+  info: "#1D4ED8",
+  infoSoft: "#E6EDFD",
+  success: "#15803D",
+  successSoft: "#E3F4E8",
+  warning: "#B45309",
+  warningSoft: "#FCF0DC",
+  violet: "#6D28D9",
+  violetSoft: "#EFE8FC",
 } as const;
 
 const dark = {
@@ -33,6 +42,14 @@ const dark = {
   onHero: "#FFFFFF",
   onHeroMuted: "#A1A1AA",
   heroChip: "rgba(255,255,255,0.08)",
+  info: "#7DA2F7",
+  infoSoft: "#1A2440",
+  success: "#5CC488",
+  successSoft: "#14291C",
+  warning: "#F0B25A",
+  warningSoft: "#33240F",
+  violet: "#B197F5",
+  violetSoft: "#261C3D",
 } as const;
 
 export type Theme = { [K in keyof typeof light]: string };

@@ -1,6 +1,8 @@
 import { useQueryClient } from "@tanstack/react-query";
+import { Image } from "expo-image";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 
+import { clearDocumentCache } from "@/features/documents/open-document";
 import { api } from "@/lib/api/endpoints";
 import { setSessionExpiredHandler } from "@/lib/api/client";
 
@@ -31,8 +33,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const resetLocalSession = useCallback(() => {
     setIsSignedIn(false);
-    // Drop cached data so the next user on this device never sees the previous user's vehicles.
+    // Drop cached data so the next user on this device never sees the previous user's vehicles,
+    // photos or documents.
     queryClient.clear();
+    void Image.clearDiskCache();
+    void Image.clearMemoryCache();
+    clearDocumentCache();
   }, [queryClient]);
 
   // The API client calls this when a refresh fails (token expired/revoked).
