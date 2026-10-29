@@ -2,7 +2,7 @@ import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { SymbolView, type SymbolViewProps } from "expo-symbols";
 import { useRef, useState, type ComponentRef, type ReactNode } from "react";
-import { Linking, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { Alert, Linking, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import Animated, {
   FadeIn,
   FadeInUp,
@@ -49,7 +49,6 @@ export default function SignInScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const reduceMotion = useReducedMotion();
   // Horizontal shake of the field card when sign-in fails.
@@ -65,7 +64,6 @@ export default function SignInScreen() {
   }
 
   async function onSubmit() {
-    setError(null);
     setSubmitting(true);
     try {
       await signIn(email, password);
@@ -73,11 +71,20 @@ export default function SignInScreen() {
     } catch (e) {
       // The backend answers 400 for any bad credentials (same wording for wrong email and wrong
       // password, so nobody can probe which emails exist), 403 when locked, 429 when rate limited.
-      setError(signInErrorMessage(e));
+      // Shown as a system alert, not inside the form: the layout never grows (so the screen
+      // never starts scrolling), it sits above the keyboard, and VoiceOver reads it at once.
+      // The typed email and password are kept.
       shakeFields();
+      Alert.alert(signInErrorTitle(e), signInErrorMessage(e), [{ text: "OK" }]);
     } finally {
       setSubmitting(false);
     }
+  }
+
+  function signInErrorTitle(e: unknown): string {
+    if (e instanceof ApiError && e.status === 403) return "Account locked";
+    if (e instanceof ApiError && e.status === 0) return "No connection";
+    return "Couldn't sign in";
   }
 
   function signInErrorMessage(e: unknown): string {
@@ -85,9 +92,7 @@ export default function SignInScreen() {
     if (e.status === 0) return "No connection. Check your internet and try again.";
     // Malformed input (bad email format) comes back with fieldErrors; wrong credentials without.
     if (e.status === 400) {
-      return e.fieldErrors?.email
-        ? "Enter a valid email address."
-        : "Email or password is incorrect.";
+      return e.fieldErrors?.email ? "Enter a valid email address." : "Email or password is incorrect.";
     }
     // The lock message is the one server text the contract allows us to show (§2.4).
     if (e.status === 403) return e.message;
@@ -138,7 +143,13 @@ export default function SignInScreen() {
         <View style={styles.form}>
           {/* Outer view slides in once; inner view shakes on errors (two separate transforms). */}
           <Animated.View entering={firstVisit ? FadeInUp.delay(intro.fields).duration(400) : undefined}>
-            <Animated.View style={[styles.fields, { backgroundColor: t.surface, borderColor: t.border }, shakeStyle]}>
+            <Animated.View
+              style={[
+                styles.fields,
+                { backgroundColor: t.surface, borderColor: t.border },
+                shakeStyle,
+              ]}
+            >
               <Field icon={{ ios: "envelope", android: "mail", web: "mail" }} label="Email">
                 <TextInput
                   value={email}
@@ -207,19 +218,11 @@ export default function SignInScreen() {
             </Pressable>
           </Animated.View>
 
-          {error ? (
-            <View style={[styles.error, { backgroundColor: t.accentSoft }]} accessibilityRole="alert">
-              <SymbolView
-                name={{ ios: "exclamationmark.circle.fill", android: "error", web: "error" }}
-                size={16}
-                tintColor={t.danger}
-              />
-              <AppText style={{ flex: 1, color: t.danger, fontSize: 14 }}>{error}</AppText>
-            </View>
-          ) : null}
-
-          <Animated.View entering={firstVisit ? FadeIn.delay(intro.button).duration(400) : undefined} style={{ marginTop: spacing.md + spacing.xs }}>
-            <Button label="Sign in" onPress={onSubmit} loading={submitting} />
+          <Animated.View
+            entering={firstVisit ? FadeIn.delay(intro.button).duration(400) : undefined}
+            style={{ marginTop: spacing.md + spacing.xs }}
+          >
+            <Button label="Sign in" haptic onPress={onSubmit} loading={submitting} />
             <Pressable
               onPress={goBack}
               accessibilityRole="button"
@@ -254,7 +257,11 @@ export default function SignInScreen() {
             </AppText>
             {/* Developer credit: CargoDev builds FTJ's apps; this is FTJ's customer app. */}
             <View style={styles.credit}>
-              <SymbolView name={{ ios: "bolt.fill", android: "bolt", web: "bolt" }} size={12} tintColor={t.accent} />
+              <SymbolView
+                name={{ ios: "bolt.fill", android: "bolt", web: "bolt" }}
+                size={12}
+                tintColor={t.accent}
+              />
               <AppText muted style={{ fontSize: 12 }}>
                 Powered by <AppText style={{ fontSize: 12, fontWeight: "600" }}>CargoDev</AppText>
               </AppText>
@@ -312,15 +319,6 @@ const styles = StyleSheet.create({
   title: { fontSize: 30, fontWeight: "800", lineHeight: 36, letterSpacing: -0.5 },
   subtitle: { fontSize: 15, lineHeight: 21, marginTop: spacing.sm },
   form: { flexGrow: 1, paddingHorizontal: spacing.lg, paddingTop: spacing.lg },
-  error: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-    marginTop: spacing.md,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm + 2,
-    borderRadius: radius.md,
-  },
   footerSpacer: { flexGrow: 1, minHeight: spacing.lg },
   forgot: { alignSelf: "flex-end", marginTop: spacing.sm + spacing.xs },
   fields: {

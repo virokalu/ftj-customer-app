@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Stack } from "expo-router";
+import { Stack, router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ActivityIndicator } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
@@ -42,6 +42,15 @@ function RootNavigator() {
   const { isLoading, isSignedIn } = useAuth();
   const t = useTheme();
 
+  // After signing out (or the session expiring) always start again at Welcome. Without this the
+  // router restores the signed-out history from before sign-in (Welcome -> Sign in) and the
+  // customer lands on Sign in.
+  const wasSignedIn = useRef(isSignedIn);
+  useEffect(() => {
+    if (wasSignedIn.current && !isSignedIn) router.dismissTo("/welcome");
+    wasSignedIn.current = isSignedIn;
+  }, [isSignedIn]);
+
   if (isLoading) {
     return (
       <Centered>
@@ -52,8 +61,8 @@ function RootNavigator() {
 
   // Route guards: Expo Router only registers the screens whose `guard` is true.
   // Signed out => only /welcome and /sign-in exist. Signed in => only the app screens exist.
-  // Signing in/out flips the guard and the router moves the user automatically
-  // (to the first available screen, so `welcome` must stay first in its group).
+  // Signing in flips the guard and the router moves the user to the app; signing out is
+  // routed to Welcome by the effect above, and a signed-out cold start by `redirectTo`.
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Protected guard={!isSignedIn}>
@@ -62,7 +71,9 @@ function RootNavigator() {
             route replays and the form replaces the welcome text. */}
         <Stack.Screen name="sign-in" options={{ animation: "fade" }} />
       </Stack.Protected>
-      <Stack.Protected guard={isSignedIn}>
+      {/* The app opens at "/" (Home), which needs sign-in: send signed-out customers to Welcome,
+          not to whichever signed-out screen the router would fall back to (it picked Sign in). */}
+      <Stack.Protected guard={isSignedIn} redirectTo="/welcome">
         <Stack.Screen name="(tabs)" />
         {/* The page draws its own back button over the gallery (sheet 3). */}
         <Stack.Screen name="vehicle/[id]" />

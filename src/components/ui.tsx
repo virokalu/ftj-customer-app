@@ -1,3 +1,4 @@
+import * as Haptics from "expo-haptics";
 import type { ReactNode } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View, type TextProps } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -30,24 +31,33 @@ export function Button({
   loading,
   disabled,
   variant = "primary",
+  haptic,
 }: {
   label: string;
   onPress: () => void;
   loading?: boolean;
   disabled?: boolean;
   variant?: "primary" | "secondary" | "danger";
+  /** A light haptic "click" on press, like native iOS buttons (Welcome, Sign in). */
+  haptic?: boolean;
 }) {
   const t = useTheme();
   const primary = variant === "primary";
   const danger = variant === "danger";
   const fill = primary ? t.accent : danger ? t.danger : t.surface;
   const label = primary ? t.onAccent : danger ? t.onDanger : t.text;
+
   return (
     <Pressable
       accessibilityRole="button"
       disabled={loading || disabled}
       accessibilityState={{ disabled: !!(loading || disabled), busy: !!loading }}
       onPress={onPress}
+      // On press-in so the tick is felt the moment the finger lands. Best effort: devices
+      // without a haptic engine (and the simulator) simply do nothing.
+      onPressIn={
+        haptic ? () => void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {}) : undefined
+      }
       style={({ pressed }) => [
         styles.button,
         {

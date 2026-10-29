@@ -105,8 +105,14 @@ export default function WelcomeScreen() {
           <View style={styles.buttonSpacer} />
 
           <Animated.View entering={firstVisit ? FadeIn.delay(intro.buttons).duration(400) : undefined} style={styles.buttons}>
-            <Button label="Create account" onPress={() => Linking.openURL(config.websiteUrl)} />
-            <Button label="I already have an account" variant="secondary" onPress={() => router.push("/sign-in")} />
+            {/* Sign in is the main action: accounts are created on the website. */}
+            <Button label="Sign in" haptic onPress={() => router.push("/sign-in")} />
+            <Button
+              label="Create an account online"
+              variant="secondary"
+              haptic
+              onPress={() => Linking.openURL(config.websiteUrl)}
+            />
           </Animated.View>
         </View>
       </ScrollView>
