@@ -37,7 +37,7 @@ export default function AlertsScreen() {
                 accessibilityRole="button"
                 hitSlop={8}
               >
-                <Text style={{ color: t.accent, fontSize: 16 }}>Mark all read</Text>
+                <Text style={{ color: t.accentText, fontSize: 16 }}>Mark all read</Text>
               </Pressable>
             ) : null,
         }}

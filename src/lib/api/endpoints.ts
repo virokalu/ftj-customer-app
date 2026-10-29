@@ -4,16 +4,31 @@ import { request } from "./client";
 import {
   alertsResponse,
   documentListResponse,
+  faqs,
   home,
   me,
+  notificationPreferences,
   photoList,
   purchaseHistory,
   session,
   timeline,
   vehicleDetail,
   vehicleListResponse,
+  type Me,
+  type NotificationPreferences,
+  type PreferenceEvent,
   type VehicleStatus,
 } from "./schemas";
+
+export type MeChanges = Partial<
+  Pick<Me, "name" | "phone" | "companyName" | "country" | "destinationPort" | "language">
+> & { theme?: "light" | "dark" | "system" };
+
+export type PreferenceChanges = Partial<
+  Omit<NotificationPreferences, "events" | "whatsappEnabled"> & {
+    events: Partial<Record<PreferenceEvent, boolean>>;
+  }
+>;
 
 // One function per endpoint. Screens call these through React Query hooks and never
 // build URLs themselves, so when the backend changes a path, only this file changes.
@@ -51,6 +66,23 @@ export const api = {
 
   me: () => request("/me", me),
 
+  // Send only what changed (at least one field); email cannot be changed.
+  updateMe: (changes: MeChanges) => request("/me", me, { method: "PATCH", body: changes }),
+
+  notificationPreferences: () => request("/me/notification-preferences", notificationPreferences),
+
+  updateNotificationPreferences: (changes: PreferenceChanges) =>
+    request("/me/notification-preferences", notificationPreferences, { method: "PATCH", body: changes }),
+
+  faqs: () => request("/help/faqs", faqs),
+
+  // Permanent. Never auto-retried; the access token stops working on success.
+  deleteAccount: (password: string) =>
+    request("/auth/delete-account", z.object({ deleted: z.literal(true) }), {
+      method: "POST",
+      body: { password },
+    }),
+
   home: () => request("/home", home),
 
   vehicles: (filters: VehicleFilters = {}) => request(`/vehicles${query(filters)}`, vehicleListResponse),
@@ -61,7 +93,8 @@ export const api = {
 
   photos: (id: string) => request(`/vehicles/${encodeURIComponent(id)}/photos`, photoList),
 
-  documents: (vehicleId?: string) => request(`/documents${query({ vehicleId, pageSize: 50 })}`, documentListResponse),
+  documents: (vehicleId?: string) =>
+    request(`/documents${query({ vehicleId, pageSize: 50 })}`, documentListResponse),
 
   purchaseHistory: () => request("/purchase-history", purchaseHistory),
 

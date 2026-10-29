@@ -25,7 +25,7 @@ export function Title({ children }: { children: ReactNode }) {
 }
 
 export function Button({
-  label,
+  label: text,
   onPress,
   loading,
   disabled,
@@ -35,10 +35,13 @@ export function Button({
   onPress: () => void;
   loading?: boolean;
   disabled?: boolean;
-  variant?: "primary" | "secondary";
+  variant?: "primary" | "secondary" | "danger";
 }) {
   const t = useTheme();
   const primary = variant === "primary";
+  const danger = variant === "danger";
+  const fill = primary ? t.accent : danger ? t.danger : t.surface;
+  const label = primary ? t.onAccent : danger ? t.onDanger : t.text;
   return (
     <Pressable
       accessibilityRole="button"
@@ -48,16 +51,16 @@ export function Button({
       style={({ pressed }) => [
         styles.button,
         {
-          backgroundColor: primary ? t.accent : t.surface,
-          borderColor: primary ? t.accent : t.border,
+          backgroundColor: fill,
+          borderColor: primary || danger ? fill : t.border,
           opacity: disabled ? 0.45 : pressed || loading ? 0.7 : 1,
         },
       ]}
     >
       {loading ? (
-        <ActivityIndicator color={primary ? t.onAccent : t.text} />
+        <ActivityIndicator color={label} />
       ) : (
-        <Text style={{ color: primary ? t.onAccent : t.text, fontSize: 16, fontWeight: "600" }}>{label}</Text>
+        <Text style={{ color: label, fontSize: 16, fontWeight: "600" }}>{text}</Text>
       )}
     </Pressable>
   );
@@ -82,7 +85,11 @@ export function Card({ children }: { children: ReactNode }) {
 }
 
 export function Centered({ children }: { children: ReactNode }) {
-  return <View style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: spacing.md }}>{children}</View>;
+  return (
+    <View style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: spacing.md }}>
+      {children}
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({

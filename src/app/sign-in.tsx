@@ -203,7 +203,7 @@ export default function SignInScreen() {
             style={styles.forgot}
           >
             <Pressable accessibilityRole="button" hitSlop={8}>
-              <Text style={{ color: t.accent, fontSize: 14, fontWeight: "600" }}>Forgot password?</Text>
+              <Text style={{ color: t.accentText, fontSize: 14, fontWeight: "600" }}>Forgot password?</Text>
             </Pressable>
           </Animated.View>
 
@@ -245,7 +245,7 @@ export default function SignInScreen() {
             <AppText muted style={{ textAlign: "center", fontSize: 14 }}>
               New to FTJ Exports?{" "}
               <Text
-                style={{ color: t.accent, fontWeight: "600" }}
+                style={{ color: t.accentText, fontWeight: "600" }}
                 accessibilityRole="link"
                 onPress={() => Linking.openURL(config.websiteUrl)}
               >

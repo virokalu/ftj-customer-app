@@ -180,7 +180,7 @@ function SectionHeader({
       {action ? (
         <Link href={action.href} asChild>
           <Pressable accessibilityRole="link" hitSlop={8}>
-            <Text style={{ color: t.accent, fontSize: 14, fontWeight: "600" }}>{action.label}</Text>
+            <Text style={{ color: t.accentText, fontSize: 14, fontWeight: "600" }}>{action.label}</Text>
           </Pressable>
         </Link>
       ) : null}

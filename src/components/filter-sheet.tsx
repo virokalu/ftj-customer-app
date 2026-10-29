@@ -54,7 +54,7 @@ export function FilterSheet({
       <View style={{ flex: 1, backgroundColor: t.background }}>
         <View style={[styles.header, { borderBottomColor: t.border }]}>
           <Pressable onPress={() => setDraft(defaultFilters)} accessibilityRole="button" hitSlop={8}>
-            <Text style={{ color: t.accent, fontSize: 16, fontWeight: "600" }}>Reset</Text>
+            <Text style={{ color: t.accentText, fontSize: 16, fontWeight: "600" }}>Reset</Text>
           </Pressable>
           <Text style={[styles.title, { color: t.text }]}>Filter vehicles on the way</Text>
           <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Close" hitSlop={8}>

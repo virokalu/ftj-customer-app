@@ -134,6 +134,47 @@ const alerts = [
   },
 ];
 
+const profile = {
+  id: "c1",
+  name: "Demo Customer",
+  email: "demo@example.com",
+  phone: null as string | null,
+  companyName: "Demo Motors Ltd" as string | null,
+  country: "Sri Lanka" as string | null,
+  destinationPort: "Colombo" as string | null,
+  language: "en",
+  theme: null as "light" | "dark" | "system" | null,
+  memberSince: "2026-10-01T09:00:00.000Z",
+};
+
+const preferences = {
+  events: {
+    BOOKING_RECEIVED: true,
+    PHOTOS_ADDED: true,
+    DOCUMENTS_READY: true,
+    DEPARTURE_REMINDER: true,
+    NEW_STOCK: true,
+    CHAT_MESSAGE: true,
+  },
+  departureLeadDays: 7,
+  pushEnabled: true,
+  emailEnabled: true,
+  whatsappEnabled: false,
+};
+
+const faqList = [
+  {
+    id: "ckfake0faq01",
+    question: "How long does shipping take?",
+    answer: "It depends on the route; see your vehicle's ETA.",
+  },
+  {
+    id: "ckfake0faq02",
+    question: "When do I get the bill of lading?",
+    answer: "It is issued after your vehicle ships. We'll let you know when it is ready.",
+  },
+];
+
 export async function mockRequest(
   path: string,
   method: string,
@@ -153,19 +194,22 @@ export async function mockRequest(
 
   if (!accessToken) return fail(401, "UNAUTHENTICATED", "Authentication required.");
 
-  if (route === "/me") {
-    return ok({
-      id: "c1",
-      name: "Demo Customer",
-      email: "demo@example.com",
-      phone: null,
-      companyName: "Demo Motors Ltd",
-      country: "Sri Lanka",
-      destinationPort: "Colombo",
-      language: "en",
-      theme: null,
-      memberSince: "2026-10-01T09:00:00.000Z",
-    });
+  if (route === "/me" && method === "PATCH") {
+    Object.assign(profile, body as object);
+    return ok(profile);
+  }
+  if (route === "/me") return ok(profile);
+  if (route === "/me/notification-preferences" && method === "PATCH") {
+    const changes = (body ?? {}) as Partial<typeof preferences>;
+    Object.assign(preferences, { ...changes, events: { ...preferences.events, ...changes.events } });
+    return ok(preferences);
+  }
+  if (route === "/me/notification-preferences") return ok(preferences);
+  if (route === "/help/faqs") return ok(faqList);
+  if (route === "/auth/delete-account" && method === "POST") {
+    const { password } = (body ?? {}) as { password?: string };
+    if (password !== "demo1234") return fail(400, "VALIDATION", "Incorrect password.");
+    return ok({ deleted: true });
   }
   if (route === "/home") {
     return ok({

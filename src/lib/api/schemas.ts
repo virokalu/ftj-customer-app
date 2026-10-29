@@ -62,9 +62,7 @@ export const home = z.object({
   activeCount: z.number().int(),
   deliveredCount: z.number().int(),
   // Soonest upcoming ETD among PENDING / BOOKING_RECEIVED vehicles, or null.
-  nextDeparture: z
-    .object({ vehicleId: z.string(), serial: z.string(), etd: z.string() })
-    .nullable(),
+  nextDeparture: z.object({ vehicleId: z.string(), serial: z.string(), etd: z.string() }).nullable(),
   // Up to 3, newest purchase first. May be empty.
   recentVehicles: z.array(vehicleSummary),
 });
@@ -193,6 +191,36 @@ export const me = z.object({
   memberSince: z.string(), // ISO datetime
 });
 export type Me = z.infer<typeof me>;
+
+// The six switchable alert types (contract §3.2). LINK_REQUEST_* are always delivered.
+export const preferenceEvents = [
+  "BOOKING_RECEIVED",
+  "PHOTOS_ADDED",
+  "DOCUMENTS_READY",
+  "DEPARTURE_REMINDER",
+  "NEW_STOCK",
+  "CHAT_MESSAGE",
+] as const;
+export type PreferenceEvent = (typeof preferenceEvents)[number];
+
+export const notificationPreferences = z.object({
+  events: z.object(
+    Object.fromEntries(preferenceEvents.map((e) => [e, z.boolean()])) as Record<
+      PreferenceEvent,
+      z.ZodBoolean
+    >,
+  ),
+  departureLeadDays: z.union([z.literal(3), z.literal(7), z.literal(14)]).catch(7),
+  pushEnabled: z.boolean(),
+  emailEnabled: z.boolean(),
+  // Stored only; WhatsApp is never sent (contract §11), so the app never shows it.
+  whatsappEnabled: z.boolean(),
+});
+export type NotificationPreferences = z.infer<typeof notificationPreferences>;
+
+// Published FAQs in staff order; plain text only.
+export const faqs = z.array(z.object({ id: z.string(), question: z.string(), answer: z.string() }));
+export type Faq = z.infer<typeof faqs>[number];
 
 export const authTokens = z.object({
   accessToken: z.string(),

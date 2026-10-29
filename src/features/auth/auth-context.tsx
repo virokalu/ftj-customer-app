@@ -2,6 +2,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 
+import { restoreAppearance, setAppearance } from "@/features/account/appearance";
 import { clearDocumentCache } from "@/features/documents/open-document";
 import { api } from "@/lib/api/endpoints";
 import { setSessionExpiredHandler } from "@/lib/api/client";
@@ -14,6 +15,8 @@ type AuthState = {
   isSignedIn: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
+  /** After the account was deleted: wipe everything locally, no API calls (the token is dead). */
+  endDeletedSession: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthState | null>(null);
@@ -25,7 +28,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // On launch: are there tokens in the Keychain? (Validity is checked lazily by the first
   // API call, which refreshes or signs out as needed.)
+  // The saved Appearance (Auto/Light/Dark) is applied first so the app never flashes the wrong theme.
   useEffect(() => {
+    void restoreAppearance();
     loadTokens()
       .then((tokens) => setIsSignedIn(tokens !== null))
       .finally(() => setIsLoading(false));
@@ -39,6 +44,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     void Image.clearDiskCache();
     void Image.clearMemoryCache();
     clearDocumentCache();
+    // The theme belongs to the account; the next person on this device starts on "Auto".
+    void setAppearance("system");
   }, [queryClient]);
 
   // The API client calls this when a refresh fails (token expired/revoked).
@@ -61,9 +68,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     resetLocalSession();
   }, [resetLocalSession]);
 
+  const endDeletedSession = useCallback(async () => {
+    await clearTokens();
+    resetLocalSession();
+  }, [resetLocalSession]);
+
   const value = useMemo(
-    () => ({ isLoading, isSignedIn, signIn, signOut }),
-    [isLoading, isSignedIn, signIn, signOut],
+    () => ({ isLoading, isSignedIn, signIn, signOut, endDeletedSession }),
+    [isLoading, isSignedIn, signIn, signOut, endDeletedSession],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

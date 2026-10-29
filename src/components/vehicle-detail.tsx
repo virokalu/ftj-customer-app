@@ -129,7 +129,7 @@ export function StatusCard({
             accessibilityLabel="Timeline details"
             hitSlop={8}
           >
-            <Text style={{ color: t.accent, fontSize: 14, fontWeight: "600" }}>Details</Text>
+            <Text style={{ color: t.accentText, fontSize: 14, fontWeight: "600" }}>Details</Text>
           </Pressable>
         </View>
       ) : null}
@@ -342,7 +342,7 @@ function DocumentRow({
       style={({ pressed }) => [styles.docRow, { opacity: pressed ? 0.6 : 1 }]}
     >
       <View style={[styles.docBadge, { backgroundColor: ready ? t.accentSoft : t.surface }]}>
-        <Text style={{ color: ready ? t.accent : t.textMuted, fontSize: 11, fontWeight: "700" }}>
+        <Text style={{ color: ready ? t.accentText : t.textMuted, fontSize: 11, fontWeight: "700" }}>
           {label.short}
         </Text>
       </View>

@@ -66,7 +66,26 @@ function RootNavigator() {
         <Stack.Screen name="(tabs)" />
         {/* The page draws its own back button over the gallery (sheet 3). */}
         <Stack.Screen name="vehicle/[id]" />
-        <Stack.Screen name="alerts" options={{ headerShown: true, title: "Updates", headerBackTitle: "Home" }} />
+        <Stack.Screen
+          name="alerts"
+          options={{ headerShown: true, title: "Updates", headerBackTitle: "Home" }}
+        />
+        <Stack.Screen
+          name="settings/details"
+          options={{ headerShown: true, title: "Personal details", headerBackTitle: "Account" }}
+        />
+        <Stack.Screen
+          name="settings/notifications"
+          options={{ headerShown: true, title: "Notifications", headerBackTitle: "Account" }}
+        />
+        <Stack.Screen
+          name="settings/help"
+          options={{ headerShown: true, title: "Help & FAQs", headerBackTitle: "Account" }}
+        />
+        <Stack.Screen
+          name="settings/delete-account"
+          options={{ headerShown: true, title: "Delete account", headerBackTitle: "Account" }}
+        />
         <Stack.Screen
           name="link-vehicle"
           options={{ headerShown: true, title: "Link a vehicle", presentation: "modal" }}
