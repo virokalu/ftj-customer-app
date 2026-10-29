@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-// These schemas ARE the app's copy of the API contract. Source of truth: doc/api/CUSTOMER_API.md
+// These schemas ARE the app's copy of the API contract. Source of truth: docs/api/CUSTOMER_API.md
 // (extracted from cargodev-api). Auth and /me match the real backend; vehicles and stock are
 // NOT IMPLEMENTED there yet, so their shapes are still our best guess and only served by mocks.
 // Rules baked in on purpose:

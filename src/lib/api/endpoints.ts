@@ -5,7 +5,7 @@ import { me, session, stockListResponse, vehicleListResponse } from "./schemas";
 
 // One function per endpoint. Screens call these through React Query hooks and never
 // build URLs themselves, so when the backend changes a path, only this file changes.
-// Paths are relative to config.apiUrl (/api/customer/v1). See doc/api/CUSTOMER_API.md.
+// Paths are relative to config.apiUrl (/api/customer/v1). See docs/api/CUSTOMER_API.md.
 export const api = {
   login: (email: string, password: string) =>
     request("/auth/login", session, { method: "POST", body: { email, password }, auth: false }),
