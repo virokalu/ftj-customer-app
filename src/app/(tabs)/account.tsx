@@ -6,6 +6,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ChoiceRow, SettingsGroup, SettingsRow } from "@/components/settings-ui";
 import { Button, raised } from "@/components/ui";
+import { useTabBarSpace } from "@/components/tab-bar";
 import { fromServerTheme, setAppearance } from "@/features/account/appearance";
 import { useUpdateMe } from "@/features/account/hooks";
 import { useAuth } from "@/features/auth/auth-context";
@@ -23,6 +24,8 @@ const appearanceOptions: { value: AppearancePreference; label: string }[] = [
 // Fields follow guide §14 / contract §3.1 (design sheet 5 is not exported yet).
 export default function AccountScreen() {
   const t = useTheme();
+  // Room under the last item so it scrolls clear of the floating tab bar.
+  const tabBarSpace = useTabBarSpace();
   const { signOut } = useAuth();
   const { data: me } = useMe();
   const updateMe = useUpdateMe();
@@ -70,7 +73,9 @@ export default function AccountScreen() {
 
   return (
     <SafeAreaView edges={["top", "left", "right"]} style={{ flex: 1, backgroundColor: t.canvas }}>
-      <ScrollView contentContainerStyle={{ padding: spacing.md, gap: spacing.lg, paddingBottom: spacing.xl }}>
+      <ScrollView
+        contentContainerStyle={{ padding: spacing.md, gap: spacing.lg, paddingBottom: tabBarSpace }}
+      >
         <Text style={[styles.title, { color: t.text }]}>Account</Text>
 
         <View style={[styles.profile, raised, { backgroundColor: t.card, borderColor: t.border }]}>

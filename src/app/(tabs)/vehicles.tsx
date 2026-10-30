@@ -17,6 +17,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Chip, FilterSheet, defaultFilters, sortOptions, type ListFilters } from "@/components/filter-sheet";
 import { AppText, Button } from "@/components/ui";
 import { VehicleRow } from "@/components/vehicle-row";
+import { useTabBarSpace } from "@/components/tab-bar";
 import {
   activeStatuses,
   usePurchaseHistory,
@@ -33,6 +34,8 @@ type Tab = "active" | "history";
 // "Purchase history" (delivered cars, a count and "customer since"; never any amounts).
 export default function VehiclesScreen() {
   const t = useTheme();
+  // Room under the last item so it scrolls clear of the floating tab bar.
+  const tabBarSpace = useTabBarSpace();
   // The selected tab lives in the URL (?tab=history), so Home's "History" shortcut can open it.
   const params = useLocalSearchParams<{ tab?: string }>();
   const tab: Tab = params.tab === "history" ? "history" : "active";
@@ -75,7 +78,7 @@ export default function VehiclesScreen() {
         data={rows}
         keyExtractor={(v) => v.id}
         renderItem={({ item }) => <VehicleRow vehicle={item} />}
-        contentContainerStyle={{ padding: spacing.md, gap: spacing.md, paddingBottom: spacing.xl }}
+        contentContainerStyle={{ padding: spacing.md, gap: spacing.md, paddingBottom: tabBarSpace }}
         onEndReached={() => {
           if (list.hasNextPage && !list.isFetchingNextPage) void list.fetchNextPage();
         }}

@@ -41,12 +41,12 @@ const opensVehicle: AlertEvent[] = [
 /** Marks the alert read (fire and forget) and opens the screen it is about. */
 export function useOpenAlert() {
   const markRead = useMarkAlertsRead();
-  return (a: Alert, from: "home" | "alerts") => {
+  return (a: Alert, from: "home" | "updates") => {
     if (!a.isRead) markRead.mutate({ ids: [a.id] });
     if (a.event === "CHAT_MESSAGE") router.push("/messages");
     else if (a.vehicleId && opensVehicle.includes(a.event)) {
       router.push({ pathname: "/vehicle/[id]", params: { id: a.vehicleId } });
-    } else if (from === "home") router.push("/alerts");
+    } else if (from === "home") router.push("/updates");
   };
 }
 

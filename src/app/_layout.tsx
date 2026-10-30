@@ -78,8 +78,8 @@ function RootNavigator() {
         {/* The page draws its own back button over the gallery (sheet 3). */}
         <Stack.Screen name="vehicle/[id]" />
         <Stack.Screen
-          name="alerts"
-          options={{ headerShown: true, title: "Updates", headerBackTitle: "Home" }}
+          name="messages"
+          options={{ headerShown: true, title: "Messages", headerBackTitle: "Back" }}
         />
         <Stack.Screen
           name="settings/details"

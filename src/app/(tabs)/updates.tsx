@@ -1,4 +1,3 @@
-import { Stack } from "expo-router";
 import {
   ActivityIndicator,
   Pressable,
@@ -8,16 +7,19 @@ import {
   Text,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AlertRow, useOpenAlert } from "@/components/alert-row";
+import { useTabBarSpace } from "@/components/tab-bar";
 import { AppText, Button, Centered } from "@/components/ui";
 import { useAlerts, useMarkAlertsRead } from "@/features/vehicles/hooks";
 import { radius, spacing, useTheme } from "@/theme/theme";
 
-// Alerts list (opened from the bell on Home). Grouped by UTC day as the API sends them.
+// Updates tab: the customer's alerts, grouped by UTC day as the API sends them.
 // TODO: load further pages (merge days by date) once accounts have more than 20 alerts.
-export default function AlertsScreen() {
+export default function UpdatesScreen() {
   const t = useTheme();
+  const tabBarSpace = useTabBarSpace();
   const { data, isPending, isError, refetch, isRefetching } = useAlerts();
   const markRead = useMarkAlertsRead();
   const openAlert = useOpenAlert();
@@ -26,22 +28,21 @@ export default function AlertsScreen() {
   const unread = data?.unreadCount ?? 0;
 
   return (
-    <View style={{ flex: 1, backgroundColor: t.canvas }}>
-      <Stack.Screen
-        options={{
-          headerRight: () =>
-            unread > 0 ? (
-              <Pressable
-                onPress={() => markRead.mutate({ all: true })}
-                disabled={markRead.isPending}
-                accessibilityRole="button"
-                hitSlop={8}
-              >
-                <Text style={{ color: t.accentText, fontSize: 16 }}>Mark all read</Text>
-              </Pressable>
-            ) : null,
-        }}
-      />
+    <SafeAreaView edges={["top", "left", "right"]} style={{ flex: 1, backgroundColor: t.canvas }}>
+      {/* A tab has no navigation header, so the title and "Mark all read" sit in their own row. */}
+      <View style={styles.titleRow}>
+        <Text style={[styles.title, { color: t.text }]}>Updates</Text>
+        {unread > 0 ? (
+          <Pressable
+            onPress={() => markRead.mutate({ all: true })}
+            disabled={markRead.isPending}
+            accessibilityRole="button"
+            hitSlop={8}
+          >
+            <Text style={{ color: t.accentText, fontSize: 15, fontWeight: "600" }}>Mark all read</Text>
+          </Pressable>
+        ) : null}
+      </View>
       {isPending ? (
         <Centered>
           <ActivityIndicator color={t.accent} />
@@ -55,8 +56,7 @@ export default function AlertsScreen() {
         <SectionList
           sections={sections}
           keyExtractor={(a) => a.id}
-          contentInsetAdjustmentBehavior="automatic"
-          contentContainerStyle={{ paddingHorizontal: spacing.md, paddingBottom: spacing.xl }}
+          contentContainerStyle={{ paddingHorizontal: spacing.md, paddingBottom: tabBarSpace }}
           refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={() => void refetch()} />}
           stickySectionHeadersEnabled={false}
           renderSectionHeader={({ section }) => (
@@ -72,7 +72,7 @@ export default function AlertsScreen() {
                 index === section.data.length - 1 && styles.cardBottom,
               ]}
             >
-              <AlertRow alert={item} onPress={() => openAlert(item, "alerts")} />
+              <AlertRow alert={item} onPress={() => openAlert(item, "updates")} />
             </View>
           )}
           ItemSeparatorComponent={() => (
@@ -87,7 +87,7 @@ export default function AlertsScreen() {
           }
         />
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -108,6 +108,14 @@ function dayLabel(date: string, now = new Date()): string {
 }
 
 const styles = StyleSheet.create({
+  titleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.md,
+  },
+  title: { fontSize: 28, fontWeight: "700" },
   cardRow: {
     paddingHorizontal: spacing.md,
     borderLeftWidth: StyleSheet.hairlineWidth,

@@ -15,6 +15,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { AlertRow, useOpenAlert } from "@/components/alert-row";
 import { OnTheWayCarousel } from "@/components/on-the-way";
 import { AppText, Button, raised } from "@/components/ui";
+import { useTabBarSpace } from "@/components/tab-bar";
 import { useAlerts, useHome, useOnTheWay } from "@/features/vehicles/hooks";
 import { formatDate } from "@/features/vehicles/status";
 import { greeting, initials } from "@/lib/format";
@@ -24,6 +25,8 @@ import { radius, spacing, useTheme } from "@/theme/theme";
 // updates, and a way to reach the team. Data: GET /home, GET /vehicles, GET /alerts.
 export default function HomeScreen() {
   const t = useTheme();
+  // Room under the last item so it scrolls clear of the floating tab bar.
+  const tabBarSpace = useTabBarSpace();
   const home = useHome();
   const onTheWay = useOnTheWay();
   const alerts = useAlerts();
@@ -42,10 +45,10 @@ export default function HomeScreen() {
   return (
     <SafeAreaView edges={["top", "left", "right"]} style={{ flex: 1, backgroundColor: t.canvas }}>
       <ScrollView
-        contentContainerStyle={{ paddingBottom: spacing.xl, gap: spacing.lg }}
+        contentContainerStyle={{ paddingBottom: tabBarSpace, gap: spacing.lg }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={t.accent} />}
       >
-        <Header name={home.data?.name ?? null} unread={alerts.data?.unreadCount ?? 0} />
+        <Header name={home.data?.name ?? null} />
 
         {home.isPending ? (
           <ActivityIndicator color={t.accent} style={{ marginTop: spacing.xl }} />
@@ -90,7 +93,7 @@ export default function HomeScreen() {
             </View>
 
             <View style={{ gap: spacing.sm }}>
-              <SectionHeader title="New for you" action={{ label: "All updates", href: "/alerts" }} />
+              <SectionHeader title="New for you" action={{ label: "All updates", href: "/updates" }} />
               <Padded>
                 {alerts.isPending ? (
                   <ActivityIndicator color={t.accent} />
@@ -134,7 +137,9 @@ export default function HomeScreen() {
   );
 }
 
-function Header({ name, unread }: { name: string | null; unread: number }) {
+// Greeting, then the message icon (opens Messages) and the account avatar. Alerts have their own
+// tab now (Updates, with the unread badge), so the header no longer carries a bell.
+function Header({ name }: { name: string | null }) {
   const t = useTheme();
   return (
     <View style={styles.header}>
@@ -145,22 +150,17 @@ function Header({ name, unread }: { name: string | null; unread: number }) {
         </Text>
       </View>
       <Pressable
-        onPress={() => router.push("/alerts")}
+        onPress={() => router.push("/messages")}
         accessibilityRole="button"
-        accessibilityLabel={unread > 0 ? `Alerts, ${unread} unread` : "Alerts"}
+        accessibilityLabel="Messages"
         hitSlop={8}
         style={[styles.circle, raised, { backgroundColor: t.card, borderColor: t.border }]}
       >
         <SymbolView
-          name={{ ios: "bell", android: "notifications", web: "notifications" }}
-          size={20}
+          name={{ ios: "bubble.left", android: "chat_bubble", web: "chat_bubble" }}
+          size={19}
           tintColor={t.text}
         />
-        {unread > 0 ? (
-          <View style={[styles.badge, { backgroundColor: t.accent, borderColor: t.background }]}>
-            <Text style={[styles.badgeText, { color: t.onAccent }]}>{unread > 9 ? "9+" : unread}</Text>
-          </View>
-        ) : null}
       </Pressable>
       <Pressable
         onPress={() => router.push("/account")}
@@ -182,7 +182,7 @@ function SectionHeader({
   action,
 }: {
   title: string;
-  action?: { label: string; href: "/vehicles" | "/alerts" | "/stock" };
+  action?: { label: string; href: "/vehicles" | "/updates" | "/stock" };
 }) {
   const t = useTheme();
   return (
@@ -210,7 +210,7 @@ const shortcuts: { label: string; icon: SymbolViewProps["name"]; go: () => void 
   {
     label: "Updates",
     icon: { ios: "bell", android: "notifications", web: "notifications" },
-    go: () => router.push("/alerts"),
+    go: () => router.push("/updates"),
   },
   {
     label: "Link a car",
@@ -386,19 +386,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  badge: {
-    position: "absolute",
-    top: -4,
-    right: -4,
-    minWidth: 18,
-    height: 18,
-    paddingHorizontal: 4,
-    borderRadius: 9,
-    borderWidth: 2,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  badgeText: { fontSize: 10, fontWeight: "700" },
+
   sectionHeader: {
     flexDirection: "row",
     alignItems: "baseline",

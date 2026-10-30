@@ -1,10 +1,11 @@
 import { Tabs } from "expo-router";
 import { SymbolView, type SymbolViewProps } from "expo-symbols";
 import { useEffect } from "react";
-import type { ColorValue } from "react-native";
+import { StyleSheet, type ColorValue } from "react-native";
 
+import { TAB_BAR_HEIGHT, TAB_BAR_RADIUS, useTabBarBottom } from "@/components/tab-bar";
 import { fromServerTheme, setAppearance } from "@/features/account/appearance";
-import { useMe } from "@/features/vehicles/hooks";
+import { useAlerts, useMe } from "@/features/vehicles/hooks";
 import { useTheme } from "@/theme/theme";
 
 function tabIcon(name: SymbolViewProps["name"]) {
@@ -13,25 +14,53 @@ function tabIcon(name: SymbolViewProps["name"]) {
   };
 }
 
-// Tab set follows the v2 change notes: Messages is a tab (decision 1, still to be
-// confirmed with FTJ); Alerts are a bell on Home. No Documents tab: documents live
+// Tabs: Home, Vehicles, Stock, Updates (alerts, with the unread badge), Account. Messages
+// open from the message icon in the Home header instead of a tab (changed from the v2 notes). No Documents tab: documents live
 // on each vehicle's page. Stock is a placeholder until the API has customer stock routes
 // (contract §11).
 export default function TabsLayout() {
   const t = useTheme();
+  const barBottom = useTabBarBottom();
   // The account's Appearance follows the customer to every device: once /me loads, its
   // `theme` wins over what this device remembered.
   const serverTheme = useMe().data?.theme;
+  // Unread alerts for the Updates tab badge (the same cached query the Updates tab shows).
+  const unread = useAlerts().data?.unreadCount ?? 0;
   useEffect(() => {
     if (serverTheme !== undefined) void setAppearance(fromServerTheme(serverTheme));
   }, [serverTheme]);
   return (
     <Tabs
+      // The floating bar places itself above the home indicator, so no extra bottom padding.
+      safeAreaInsets={{ bottom: 0 }}
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: t.accentText,
         tabBarInactiveTintColor: t.textMuted,
-        tabBarStyle: { backgroundColor: t.card, borderTopColor: t.border },
+        // Floating bar: a rounded card above the home indicator, inset from both sides.
+        tabBarStyle: {
+          position: "absolute",
+          left: 0,
+          right: 0,
+          bottom: barBottom,
+          marginHorizontal: 16,
+          height: TAB_BAR_HEIGHT,
+          paddingTop: 6,
+          paddingBottom: 6,
+          borderRadius: TAB_BAR_RADIUS,
+          backgroundColor: t.card,
+          borderTopWidth: StyleSheet.hairlineWidth,
+          borderWidth: StyleSheet.hairlineWidth,
+          borderTopColor: t.border,
+          borderColor: t.border,
+          shadowColor: "#000000",
+          shadowOpacity: 0.12,
+          shadowRadius: 16,
+          shadowOffset: { width: 0, height: 6 },
+          elevation: 8,
+        },
+        tabBarItemStyle: { borderRadius: TAB_BAR_RADIUS - 6 },
+        tabBarLabelStyle: { fontSize: 11, fontWeight: "600" },
       }}
     >
       <Tabs.Screen
@@ -53,10 +82,12 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="messages"
+        name="updates"
         options={{
-          title: "Messages",
-          tabBarIcon: tabIcon({ ios: "bubble.left", android: "chat_bubble", web: "chat_bubble" }),
+          title: "Updates",
+          tabBarIcon: tabIcon({ ios: "bell", android: "notifications", web: "notifications" }),
+          tabBarBadge: unread > 0 ? (unread > 9 ? "9+" : unread) : undefined,
+          tabBarBadgeStyle: { backgroundColor: t.accent, color: t.onAccent, fontSize: 10, fontWeight: "700" },
         }}
       />
       <Tabs.Screen
