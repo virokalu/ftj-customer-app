@@ -35,6 +35,10 @@ const light = {
   warningSoft: "#FCF0DC",
   violet: "#6D28D9",
   violetSoft: "#EFE8FC",
+  // The little car in the sign-in loader.
+  tyre: "#2A2A30",
+  hub: "#C9C9CE",
+  glass: "#DCE7F5",
 } as const;
 
 const dark = {
@@ -65,6 +69,9 @@ const dark = {
   warningSoft: "#33240F",
   violet: "#B197F5",
   violetSoft: "#261C3D",
+  tyre: "#050506",
+  hub: "#8A8A93",
+  glass: "#2C3A52",
 } as const;
 
 export type Theme = { [K in keyof typeof light]: string };

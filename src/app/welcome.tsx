@@ -106,11 +106,12 @@ export default function WelcomeScreen() {
 
           <Animated.View entering={firstVisit ? FadeIn.delay(intro.buttons).duration(400) : undefined} style={styles.buttons}>
             {/* Sign in is the main action: accounts are created on the website. */}
-            <Button label="Sign in" haptic onPress={() => router.push("/sign-in")} />
+            <Button label="Sign in" haptic pop onPress={() => router.push("/sign-in")} />
             <Button
               label="Create an account online"
               variant="secondary"
               haptic
+              pop
               onPress={() => Linking.openURL(config.websiteUrl)}
             />
           </Animated.View>

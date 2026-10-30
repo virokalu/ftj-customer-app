@@ -1,6 +1,24 @@
 import * as Haptics from "expo-haptics";
 import type { ReactNode } from "react";
-import { ActivityIndicator, Pressable, StyleSheet, Text, View, type TextProps } from "react-native";
+import {
+  ActivityIndicator,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  type PressableProps,
+  type StyleProp,
+  type TextProps,
+  type ViewStyle,
+} from "react-native";
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useReducedMotion,
+  useSharedValue,
+  withSequence,
+  withTiming,
+} from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { radius, spacing, useTheme } from "@/theme/theme";
@@ -25,6 +43,56 @@ export function Title({ children }: { children: ReactNode }) {
   );
 }
 
+/**
+ * One small "pop" (to 105% and smoothly back, no bounce) for press feedback. `trigger` is called
+ * on press-in so the pop is seen even when the press navigates away. Off under Reduce Motion.
+ */
+export function usePop() {
+  const reduceMotion = useReducedMotion();
+  const scale = useSharedValue(1);
+  const style = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+  const trigger = () => {
+    if (reduceMotion) return;
+    scale.set(
+      withSequence(
+        withTiming(1.05, { duration: 100, easing: Easing.out(Easing.quad) }),
+        // A plain timed return (no spring), so it settles without bouncing.
+        withTiming(1, { duration: 140, easing: Easing.inOut(Easing.quad) }),
+      ),
+    );
+  };
+  return { style, trigger };
+}
+
+/** A tappable link or row that pops once when pressed instead of dimming (Sign in page links). */
+export function PopPressable({
+  children,
+  style,
+  containerStyle,
+  onPressIn,
+  ...props
+}: Omit<PressableProps, "style" | "children"> & {
+  children: ReactNode;
+  /** Layout of the content that pops (e.g. an icon + text row). */
+  style?: StyleProp<ViewStyle>;
+  /** Placement of the tap area itself (e.g. alignSelf, margins). */
+  containerStyle?: StyleProp<ViewStyle>;
+}) {
+  const pop = usePop();
+  return (
+    <Pressable
+      {...props}
+      style={containerStyle}
+      onPressIn={(e) => {
+        pop.trigger();
+        onPressIn?.(e);
+      }}
+    >
+      <Animated.View style={[style, pop.style]}>{children}</Animated.View>
+    </Pressable>
+  );
+}
+
 export function Button({
   label: text,
   onPress,
@@ -32,6 +100,7 @@ export function Button({
   disabled,
   variant = "primary",
   haptic,
+  pop,
 }: {
   label: string;
   onPress: () => void;
@@ -40,12 +109,19 @@ export function Button({
   variant?: "primary" | "secondary" | "danger";
   /** A light haptic "click" on press, like native iOS buttons (Welcome, Sign in). */
   haptic?: boolean;
+  /**
+   * Press feedback for the Welcome / Sign in buttons: the label pops once (to 105% and back)
+   * instead of the whole button dimming while pressed.
+   */
+  pop?: boolean;
 }) {
   const t = useTheme();
   const primary = variant === "primary";
   const danger = variant === "danger";
   const fill = primary ? t.accent : danger ? t.danger : t.card;
   const label = primary ? t.onAccent : danger ? t.onDanger : t.text;
+
+  const labelPop = usePop();
 
   return (
     <Pressable
@@ -55,22 +131,26 @@ export function Button({
       onPress={onPress}
       // On press-in so the tick is felt the moment the finger lands. Best effort: devices
       // without a haptic engine (and the simulator) simply do nothing.
-      onPressIn={
-        haptic ? () => void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {}) : undefined
-      }
+      onPressIn={() => {
+        if (haptic) void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+        if (pop) labelPop.trigger();
+      }}
       style={({ pressed }) => [
         styles.button,
         {
           backgroundColor: fill,
           borderColor: primary || danger ? fill : t.border,
-          opacity: disabled ? 0.45 : pressed || loading ? 0.7 : 1,
+          // Pop buttons never dim on press: the label pop is their feedback.
+          opacity: disabled ? 0.45 : (pressed && !pop) || loading ? 0.7 : 1,
         },
       ]}
     >
       {loading ? (
         <ActivityIndicator color={label} />
       ) : (
-        <Text style={{ color: label, fontSize: 16, fontWeight: "600" }}>{text}</Text>
+        <Animated.Text style={[{ color: label, fontSize: 16, fontWeight: "600" }, labelPop.style]}>
+          {text}
+        </Animated.Text>
       )}
     </Pressable>
   );

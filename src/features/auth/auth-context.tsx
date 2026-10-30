@@ -13,7 +13,15 @@ type AuthState = {
   /** true while we check the Keychain on app start (show a splash, not the sign-in screen). */
   isLoading: boolean;
   isSignedIn: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
+  /**
+   * `beforeEnter` runs after the tokens are saved and before the app switches to the signed-in
+   * screens, with the signed-in name, so Sign in can show "Welcome back" first.
+   */
+  signIn: (
+    email: string,
+    password: string,
+    options?: { beforeEnter?: (user: { name: string }) => Promise<void> },
+  ) => Promise<void>;
   signOut: () => Promise<void>;
   /** After the account was deleted: wipe everything locally, no API calls (the token is dead). */
   endDeletedSession: () => Promise<void>;
@@ -54,11 +62,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => setSessionExpiredHandler(null);
   }, [resetLocalSession]);
 
-  const signIn = useCallback(async (email: string, password: string) => {
-    const tokens = await api.login(email.trim().toLowerCase(), password);
-    await saveTokens(tokens);
-    setIsSignedIn(true);
-  }, []);
+  const signIn = useCallback(
+    async (
+      email: string,
+      password: string,
+      options?: { beforeEnter?: (user: { name: string }) => Promise<void> },
+    ) => {
+      const session = await api.login(email.trim().toLowerCase(), password);
+      await saveTokens(session);
+      await options?.beforeEnter?.(session.user);
+      setIsSignedIn(true);
+    },
+    [],
+  );
 
   const signOut = useCallback(async () => {
     // Best effort: tell the server to revoke the session, but sign out locally regardless.

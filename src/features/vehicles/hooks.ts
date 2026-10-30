@@ -1,4 +1,11 @@
-import { useInfiniteQuery, useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQueries,
+  useQuery,
+  useQueryClient,
+  type QueryClient,
+} from "@tanstack/react-query";
 
 import { api, type VehicleFilters } from "@/lib/api/endpoints";
 
@@ -87,6 +94,22 @@ export const useOnTheWay = () =>
 // Alerts change often, so they are never considered fresh.
 export const useAlerts = () =>
   useQuery({ queryKey: queryKeys.alerts, queryFn: () => api.alerts(), staleTime: 0 });
+
+/**
+ * Loads what Home shows (dashboard, "On the way" cards, alerts) into the cache, with the same
+ * keys Home reads, so Home opens already filled in. Used by Sign in right after signing in.
+ * Never throws: a failed part simply loads again on Home.
+ */
+export function prefetchHome(queryClient: QueryClient): Promise<void> {
+  return Promise.all([
+    queryClient.prefetchQuery({ queryKey: queryKeys.home, queryFn: api.home }),
+    queryClient.prefetchQuery({
+      queryKey: queryKeys.vehicles(onTheWayFilters),
+      queryFn: () => api.vehicles(onTheWayFilters),
+    }),
+    queryClient.prefetchQuery({ queryKey: queryKeys.alerts, queryFn: () => api.alerts() }),
+  ]).then(() => undefined);
+}
 
 export function useMarkAlertsRead() {
   const queryClient = useQueryClient();
