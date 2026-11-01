@@ -2,7 +2,6 @@ import { router, useLocalSearchParams } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { useMemo, useState } from "react";
 import {
-  ActivityIndicator,
   FlatList,
   Pressable,
   RefreshControl,
@@ -16,6 +15,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Chip, FilterSheet, defaultFilters, sortOptions, type ListFilters } from "@/components/filter-sheet";
 import { AppText, Button } from "@/components/ui";
+import { Bone, BoneCard, Skeleton, VehicleRowsSkeleton } from "@/components/skeleton";
 import { VehicleRow } from "@/components/vehicle-row";
 import { useTabBarSpace } from "@/components/tab-bar";
 import {
@@ -189,12 +189,22 @@ export default function VehiclesScreen() {
                   label="Customer since"
                 />
               </View>
-            ) : null}
+            ) : (
+              // Purchase history counts still loading.
+              <Skeleton style={styles.stats}>
+                {[0, 1].map((i) => (
+                  <BoneCard key={i} style={{ flex: 1, gap: 8 }}>
+                    <Bone width="40%" height={24} />
+                    <Bone width="70%" height={10} />
+                  </BoneCard>
+                ))}
+              </Skeleton>
+            )}
           </View>
         }
         ListEmptyComponent={
           list.isPending ? (
-            <ActivityIndicator color={t.accent} style={{ marginTop: spacing.lg }} />
+            <VehicleRowsSkeleton />
           ) : list.isError ? (
             <View style={{ gap: spacing.sm, marginTop: spacing.lg }}>
               <AppText muted>Couldn&apos;t load your vehicles.</AppText>
@@ -221,7 +231,7 @@ export default function VehiclesScreen() {
             />
           )
         }
-        ListFooterComponent={list.isFetchingNextPage ? <ActivityIndicator color={t.accent} /> : undefined}
+        ListFooterComponent={list.isFetchingNextPage ? <VehicleRowsSkeleton rows={1} /> : undefined}
       />
 
       <FilterSheet

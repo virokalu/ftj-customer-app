@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { ActivityIndicator, ScrollView, Text } from "react-native";
+import { ScrollView, Text } from "react-native";
 
 import { ChoiceRow, SettingsGroup, SwitchRow } from "@/components/settings-ui";
+import { SettingsSkeleton } from "@/components/skeleton";
 import { AppText, Button, Centered } from "@/components/ui";
 import { useNotificationPreferences, useUpdatePreferences } from "@/features/account/hooks";
 import type { PreferenceChanges } from "@/lib/api/endpoints";
@@ -30,9 +31,13 @@ export default function NotificationSettingsScreen() {
 
   if (isPending) {
     return (
-      <Centered>
-        <ActivityIndicator color={t.accent} />
-      </Centered>
+      <ScrollView
+        style={{ backgroundColor: t.canvas }}
+        contentInsetAdjustmentBehavior="automatic"
+        contentContainerStyle={{ padding: spacing.md }}
+      >
+        <SettingsSkeleton />
+      </ScrollView>
     );
   }
   if (isError) {

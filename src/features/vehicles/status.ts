@@ -93,14 +93,14 @@ export function journeyStage(v: Pick<VehicleSummary, "status">): JourneyStage {
   }
 }
 
-// Position of the ship marker on the port-to-port track, 0 (loading port) to 1 (destination).
-// While at sea it moves with the calendar between ETD and ETA.
+// Position of the marker on the port-to-port track, 0 (loading port) to 1 (destination).
+// Before departure (pending or booked) it stays on the loading port, so it never looks as if the
+// car has left; at sea it moves with the calendar between ETD and ETA (15-92%); arrived = 1.
 export function journeyProgress(v: VehicleSummary, now = new Date()): number {
   switch (v.status) {
     case "PENDING":
-      return 0;
     case "BOOKING_RECEIVED":
-      return 0.08;
+      return 0;
     case "SHIPPED": {
       if (!v.etd || !v.eta) return 0.5;
       const start = new Date(v.etd).getTime();

@@ -1,16 +1,9 @@
 import { router } from "expo-router";
 import { useState } from "react";
-import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { KeyboardAvoidingView, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
-import { Button, Centered } from "@/components/ui";
+import { FormSkeleton } from "@/components/skeleton";
+import { Button } from "@/components/ui";
 import { useUpdateMe } from "@/features/account/hooks";
 import { useMe } from "@/features/vehicles/hooks";
 import { ApiError } from "@/lib/api/client";
@@ -42,9 +35,13 @@ export default function PersonalDetailsScreen() {
   const { data: me } = useMe();
   if (!me) {
     return (
-      <Centered>
-        <ActivityIndicator color={t.accent} />
-      </Centered>
+      <ScrollView
+        style={{ backgroundColor: t.canvas }}
+        contentInsetAdjustmentBehavior="automatic"
+        contentContainerStyle={{ padding: spacing.md }}
+      >
+        <FormSkeleton />
+      </ScrollView>
     );
   }
   // Mounted only once the profile is loaded, so the form starts from it (no syncing effect).

@@ -1,19 +1,12 @@
 import { router, useLocalSearchParams } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { useState } from "react";
-import {
-  ActivityIndicator,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AppText, Button, Centered, raised } from "@/components/ui";
 import { PhotoViewer } from "@/components/photo-viewer";
+import { VehiclePageSkeleton } from "@/components/skeleton";
 import { StatusChip } from "@/components/vehicle-bits";
 import {
   Gallery,
@@ -74,9 +67,7 @@ export default function VehicleScreen() {
   if (vehicle.isPending) {
     return (
       <View style={{ flex: 1, backgroundColor: t.canvas }}>
-        <Centered>
-          <ActivityIndicator color={t.accent} />
-        </Centered>
+        <VehiclePageSkeleton topInset={insets.top} />
         {back}
       </View>
     );

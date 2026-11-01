@@ -1,15 +1,8 @@
-import {
-  ActivityIndicator,
-  Pressable,
-  RefreshControl,
-  SectionList,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Pressable, RefreshControl, SectionList, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AlertRow, useOpenAlert } from "@/components/alert-row";
+import { AlertRowsSkeleton, Bone, Skeleton } from "@/components/skeleton";
 import { useTabBarSpace } from "@/components/tab-bar";
 import { AppText, Button, Centered } from "@/components/ui";
 import { useAlerts, useMarkAlertsRead } from "@/features/vehicles/hooks";
@@ -44,9 +37,17 @@ export default function UpdatesScreen() {
         ) : null}
       </View>
       {isPending ? (
-        <Centered>
-          <ActivityIndicator color={t.accent} />
-        </Centered>
+        // Two days of alerts, in the same day-card layout as the real list.
+        <View style={{ paddingHorizontal: spacing.md, gap: spacing.sm }}>
+          {[3, 2].map((rows, i) => (
+            <View key={i} style={{ gap: spacing.sm, marginTop: spacing.lg - spacing.xs }}>
+              <Skeleton>
+                <Bone width={90} height={11} />
+              </Skeleton>
+              <AlertRowsSkeleton rows={rows} />
+            </View>
+          ))}
+        </View>
       ) : isError ? (
         <Centered>
           <AppText muted>Couldn&apos;t load your updates.</AppText>

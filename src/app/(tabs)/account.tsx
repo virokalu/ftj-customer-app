@@ -5,6 +5,7 @@ import { Alert, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ChoiceRow, SettingsGroup, SettingsRow } from "@/components/settings-ui";
+import { ProfileSkeleton } from "@/components/skeleton";
 import { Button, raised } from "@/components/ui";
 import { useTabBarSpace } from "@/components/tab-bar";
 import { fromServerTheme, setAppearance } from "@/features/account/appearance";
@@ -78,28 +79,30 @@ export default function AccountScreen() {
       >
         <Text style={[styles.title, { color: t.text }]}>Account</Text>
 
-        <View style={[styles.profile, raised, { backgroundColor: t.card, borderColor: t.border }]}>
-          <View style={[styles.avatar, { backgroundColor: t.accent }]}>
-            <Text style={{ color: t.onAccent, fontSize: 20, fontWeight: "700" }}>
-              {me ? initials(me.name) : ""}
-            </Text>
-          </View>
-          <View style={{ flex: 1, gap: 2 }}>
-            <Text style={{ color: t.text, fontSize: 18, fontWeight: "700" }} numberOfLines={1}>
-              {me?.name ?? " "}
-            </Text>
-            {me?.email ? (
-              <Text style={{ color: t.textMuted, fontSize: 14 }} numberOfLines={1}>
-                {me.email}
+        {me ? (
+          <View style={[styles.profile, raised, { backgroundColor: t.card, borderColor: t.border }]}>
+            <View style={[styles.avatar, { backgroundColor: t.accent }]}>
+              <Text style={{ color: t.onAccent, fontSize: 20, fontWeight: "700" }}>{initials(me.name)}</Text>
+            </View>
+            <View style={{ flex: 1, gap: 2 }}>
+              <Text style={{ color: t.text, fontSize: 18, fontWeight: "700" }} numberOfLines={1}>
+                {me.name}
               </Text>
-            ) : null}
-            <Text style={{ color: t.textMuted, fontSize: 12 }} numberOfLines={1}>
-              {[me?.companyName, memberSince ? `Member since ${memberSince}` : null]
-                .filter(Boolean)
-                .join(" · ")}
-            </Text>
+              {me.email ? (
+                <Text style={{ color: t.textMuted, fontSize: 14 }} numberOfLines={1}>
+                  {me.email}
+                </Text>
+              ) : null}
+              <Text style={{ color: t.textMuted, fontSize: 12 }} numberOfLines={1}>
+                {[me.companyName, memberSince ? `Member since ${memberSince}` : null]
+                  .filter(Boolean)
+                  .join(" · ")}
+              </Text>
+            </View>
           </View>
-        </View>
+        ) : (
+          <ProfileSkeleton />
+        )}
 
         <SettingsGroup title="Your account">
           <SettingsRow
@@ -110,7 +113,7 @@ export default function AccountScreen() {
           <SettingsRow
             icon={{ ios: "mappin.and.ellipse", android: "place", web: "place" }}
             label="Destination port"
-            value={me?.destinationPort ?? "Not set"}
+            value={me ? (me.destinationPort ?? "Not set") : undefined}
             onPress={() => router.push("/settings/details")}
           />
           <SettingsRow

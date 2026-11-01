@@ -1,8 +1,9 @@
 import { router } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
+import { FaqSkeleton } from "@/components/skeleton";
 import { AppText, Button, Centered, raised } from "@/components/ui";
 import { useFaqs } from "@/features/account/hooks";
 import { radius, spacing, useTheme } from "@/theme/theme";
@@ -15,9 +16,13 @@ export default function HelpScreen() {
 
   if (isPending) {
     return (
-      <Centered>
-        <ActivityIndicator color={t.accent} />
-      </Centered>
+      <ScrollView
+        style={{ backgroundColor: t.canvas }}
+        contentInsetAdjustmentBehavior="automatic"
+        contentContainerStyle={{ padding: spacing.md }}
+      >
+        <FaqSkeleton />
+      </ScrollView>
     );
   }
   if (isError) {

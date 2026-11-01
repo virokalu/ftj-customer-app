@@ -12,6 +12,7 @@ import {
 } from "react-native";
 
 import { raised } from "@/components/ui";
+import { DocumentRowsSkeleton, PhotoGridSkeleton, TimelineSkeleton } from "@/components/skeleton";
 import { PortTrack, VehicleCover } from "@/components/vehicle-bits";
 import { openDocument } from "@/features/documents/open-document";
 import { formatDate, journeyLine, journeyProgress, journeyStage } from "@/features/vehicles/status";
@@ -221,7 +222,7 @@ export function OverviewTab({
       <View style={{ gap: spacing.sm }}>
         <SectionLabel>Documents</SectionLabel>
         {documentsLoading ? (
-          <ActivityIndicator color={t.accent} />
+          <DocumentRowsSkeleton />
         ) : (
           <View
             style={[styles.panel, styles.list, raised, { backgroundColor: t.card, borderColor: t.border }]}
@@ -424,7 +425,7 @@ export function TimelineTab({
   steps: TimelineStep[] | undefined;
 }) {
   const t = useTheme();
-  if (!steps) return <ActivityIndicator color={t.accent} />;
+  if (!steps) return <TimelineSkeleton />;
   const next = nextStep(steps);
 
   return (
@@ -508,7 +509,7 @@ export function PhotosTab({
   const t = useTheme();
   const { width } = useWindowDimensions();
   const tile = (width - spacing.md * 2 - spacing.sm) / 2;
-  if (loading || !photos) return <ActivityIndicator color={t.accent} />;
+  if (loading || !photos) return <PhotoGridSkeleton tile={tile} />;
   if (photos.length === 0) {
     return (
       <View style={[styles.panel, raised, { backgroundColor: t.card, borderColor: t.border }]}>

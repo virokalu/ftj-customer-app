@@ -1,19 +1,12 @@
 import { Link, router } from "expo-router";
 import { SymbolView, type SymbolViewProps } from "expo-symbols";
 import type { ReactNode } from "react";
-import {
-  ActivityIndicator,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AlertRow, useOpenAlert } from "@/components/alert-row";
 import { OnTheWayCarousel } from "@/components/on-the-way";
+import { AlertRowsSkeleton, Bone, OnTheWaySkeleton, Skeleton } from "@/components/skeleton";
 import { AppText, Button, raised } from "@/components/ui";
 import { useTabBarSpace } from "@/components/tab-bar";
 import { useAlerts, useHome, useOnTheWay } from "@/features/vehicles/hooks";
@@ -51,7 +44,19 @@ export default function HomeScreen() {
         <Header name={home.data?.name ?? null} />
 
         {home.isPending ? (
-          <ActivityIndicator color={t.accent} style={{ marginTop: spacing.xl }} />
+          // Skeleton of the dashboard: the On the way card and the latest updates.
+          <>
+            <View style={{ gap: spacing.sm }}>
+              <SectionHeader title="On the way" />
+              <OnTheWaySkeleton />
+            </View>
+            <View style={{ gap: spacing.sm }}>
+              <SectionHeader title="New for you" />
+              <Padded>
+                <AlertRowsSkeleton />
+              </Padded>
+            </View>
+          </>
         ) : home.isError ? (
           <Padded>
             <RetryCard message="Couldn't load your dashboard." onRetry={refresh} />
@@ -68,7 +73,7 @@ export default function HomeScreen() {
                 action={{ label: "See all", href: "/vehicles" }}
               />
               {onTheWay.isPending ? (
-                <ActivityIndicator color={t.accent} />
+                <OnTheWaySkeleton />
               ) : onTheWay.isError ? (
                 <Padded>
                   <RetryCard message="Couldn't load your vehicles." onRetry={() => void onTheWay.refetch()} />
@@ -96,7 +101,7 @@ export default function HomeScreen() {
               <SectionHeader title="New for you" action={{ label: "All updates", href: "/updates" }} />
               <Padded>
                 {alerts.isPending ? (
-                  <ActivityIndicator color={t.accent} />
+                  <AlertRowsSkeleton />
                 ) : latestAlerts.length === 0 ? (
                   <QuietCard text="No updates yet. We'll let you know when something changes." />
                 ) : (
@@ -145,9 +150,15 @@ function Header({ name }: { name: string | null }) {
     <View style={styles.header}>
       <View style={{ flex: 1 }}>
         <Text style={{ color: t.textMuted, fontSize: 14 }}>{greeting()},</Text>
-        <Text style={[styles.name, { color: t.text }]} numberOfLines={1}>
-          {name ?? " "}
-        </Text>
+        {name ? (
+          <Text style={[styles.name, { color: t.text }]} numberOfLines={1}>
+            {name}
+          </Text>
+        ) : (
+          <Skeleton style={{ paddingVertical: 6 }}>
+            <Bone width={170} height={22} />
+          </Skeleton>
+        )}
       </View>
       <Pressable
         onPress={() => router.push("/messages")}
