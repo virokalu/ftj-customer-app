@@ -13,6 +13,8 @@ const light = {
   card: "#FFFFFF",
   control: "#E6E6EB", // search fields and segmented controls sitting on `canvas`
   controlSelected: "#FFFFFF",
+  // Neutral tile behind every icon (alerts, settings rows, shortcuts); the icon carries the colour.
+  iconTile: "#F0F0F3",
   border: "#E4E4E7",
   text: "#18181B",
   textMuted: "#6A6A73",
@@ -61,6 +63,7 @@ const dark = {
   card: "#1C1C21",
   control: "#1C1C21",
   controlSelected: "#3A3A41",
+  iconTile: "#2A2A30",
   border: "#2E2E33",
   text: "#F4F4F5",
   textMuted: "#A1A1AA",

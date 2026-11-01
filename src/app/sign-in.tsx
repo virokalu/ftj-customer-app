@@ -397,7 +397,7 @@ export default function SignInScreen() {
               <SymbolView
                 name={{ ios: "bolt.fill", android: "bolt", web: "bolt" }}
                 size={12}
-                tintColor={t.accent}
+                tintColor={t.accentText}
               />
               <AppText muted style={{ fontSize: 12 }}>
                 Powered by <AppText style={{ fontSize: 12, fontWeight: "600" }}>CargoDev</AppText>

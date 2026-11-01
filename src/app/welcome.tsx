@@ -89,8 +89,8 @@ export default function WelcomeScreen() {
                 entering={firstVisit ? FadeInUp.delay(intro.features + i * intro.featureStagger).duration(400) : undefined}
                 style={styles.feature}
               >
-                <View style={[styles.featureIcon, { backgroundColor: t.accentSoft }]}>
-                  <SymbolView name={f.icon} size={24} tintColor={t.accent} />
+                <View style={[styles.featureIcon, { backgroundColor: t.iconTile }]}>
+                  <SymbolView name={f.icon} size={24} tintColor={t.accentText} />
                 </View>
                 <View style={{ flex: 1 }}>
                   <AppText style={{ fontSize: 15, fontWeight: "600" }}>{f.title}</AppText>

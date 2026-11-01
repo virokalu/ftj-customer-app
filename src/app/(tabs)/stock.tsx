@@ -13,11 +13,11 @@ export default function StockScreen() {
     <Screen>
       <Title>Stock</Title>
       <View style={styles.center}>
-        <View style={[styles.icon, { backgroundColor: t.accentSoft }]}>
+        <View style={[styles.icon, { backgroundColor: t.iconTile }]}>
           <SymbolView
             name={{ ios: "car.2", android: "garage", web: "garage" }}
             size={26}
-            tintColor={t.accent}
+            tintColor={t.accentText}
           />
         </View>
         <Text style={[styles.heading, { color: t.text }]}>Stock is coming soon</Text>

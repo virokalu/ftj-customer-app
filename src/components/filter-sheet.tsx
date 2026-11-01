@@ -61,7 +61,7 @@ export function FilterSheet({
             <SymbolView
               name={{ ios: "xmark", android: "close", web: "close" }}
               size={16}
-              tintColor={t.accent}
+              tintColor={t.accentText}
             />
           </Pressable>
         </View>
@@ -122,7 +122,7 @@ export function FilterSheet({
                     <SymbolView
                       name={{ ios: "checkmark", android: "check", web: "check" }}
                       size={15}
-                      tintColor={t.accent}
+                      tintColor={t.accentText}
                     />
                   ) : null}
                 </Pressable>

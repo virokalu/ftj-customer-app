@@ -10,10 +10,12 @@ import { spacing, useTheme, type Theme } from "@/theme/theme";
 
 type Icon = { name: SymbolViewProps["name"]; tone: (t: Theme) => { fg: string; bg: string } };
 
-const accent = (t: Theme) => ({ fg: t.accent, bg: t.accentSoft });
-const info = (t: Theme) => ({ fg: t.info, bg: t.infoSoft });
-const violet = (t: Theme) => ({ fg: t.violet, bg: t.violetSoft });
-const success = (t: Theme) => ({ fg: t.success, bg: t.successSoft });
+// "Neutral tiles": every alert icon sits on the same neutral tile and only the icon is coloured.
+// Crimson uses the lighter text crimson, which stays readable in dark mode (4.4:1 or better).
+const accent = (t: Theme) => ({ fg: t.accentText, bg: t.iconTile });
+const info = (t: Theme) => ({ fg: t.info, bg: t.iconTile });
+const violet = (t: Theme) => ({ fg: t.violet, bg: t.iconTile });
+const success = (t: Theme) => ({ fg: t.success, bg: t.iconTile });
 
 const icons: Record<AlertEvent, Icon> = {
   BOOKING_RECEIVED: {

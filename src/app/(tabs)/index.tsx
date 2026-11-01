@@ -254,7 +254,7 @@ function Shortcuts() {
           style={({ pressed }) => [styles.shortcut, { opacity: pressed ? 0.6 : 1 }]}
         >
           <View style={[styles.shortcutIcon, raised, { backgroundColor: t.card, borderColor: t.border }]}>
-            <SymbolView name={s.icon} size={20} tintColor={t.accent} />
+            <SymbolView name={s.icon} size={20} tintColor={t.accentText} />
           </View>
           <Text style={{ color: t.text, fontSize: 12, fontWeight: "500" }} numberOfLines={1}>
             {s.label}
@@ -281,11 +281,11 @@ function StockTeaser() {
         { backgroundColor: t.card, borderColor: t.border, opacity: pressed ? 0.7 : 1 },
       ]}
     >
-      <View style={[styles.circle, { backgroundColor: t.accentSoft, borderColor: t.accentSoft }]}>
+      <View style={[styles.circle, { backgroundColor: t.iconTile, borderColor: t.iconTile }]}>
         <SymbolView
           name={{ ios: "car.2", android: "garage", web: "garage" }}
           size={18}
-          tintColor={t.accent}
+          tintColor={t.accentText}
         />
       </View>
       <View style={{ flex: 1 }}>

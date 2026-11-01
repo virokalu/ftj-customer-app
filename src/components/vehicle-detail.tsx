@@ -40,7 +40,7 @@ export function Gallery({ photos, onOpen }: { photos: Photo[]; onOpen: (index: n
           <SymbolView
             name={{ ios: "camera", android: "photo_camera", web: "photo_camera" }}
             size={22}
-            tintColor={t.accent}
+            tintColor={t.accentText}
           />
         </View>
         <Text style={[styles.soonTitle, { color: t.text }]}>Photos coming soon</Text>
@@ -115,8 +115,8 @@ export function StatusCard({
       ) : null}
       {next ? (
         <View style={[styles.nextRow, { borderTopColor: t.border }]}>
-          <View style={[styles.iconDot, { backgroundColor: t.accentSoft }]}>
-            <SymbolView name={stepIcon(next)} size={16} tintColor={t.accent} />
+          <View style={[styles.iconDot, { backgroundColor: t.iconTile }]}>
+            <SymbolView name={stepIcon(next)} size={16} tintColor={t.accentText} />
           </View>
           <View style={{ flex: 1 }}>
             <Text style={[styles.caption, { color: t.textMuted }]}>Next step</Text>
@@ -392,7 +392,7 @@ function Fact({
   const t = useTheme();
   return (
     <View style={[styles.panel, styles.fact, raised, { backgroundColor: t.card, borderColor: t.border }]}>
-      <SymbolView name={icon} size={16} tintColor={t.accent} />
+      <SymbolView name={icon} size={16} tintColor={t.accentText} />
       <Text style={[styles.factValue, { color: t.text }]} numberOfLines={1}>
         {value ?? "-"}
       </Text>

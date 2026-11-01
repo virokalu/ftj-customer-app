@@ -58,7 +58,7 @@ export function SettingsRow({
       accessibilityLabel={value ? `${label}, ${value}` : label}
       style={({ pressed }) => [styles.row, { opacity: pressed ? 0.6 : 1 }]}
     >
-      {icon ? <IconTile name={icon} tint={destructive ? t.danger : t.accent} /> : null}
+      {icon ? <IconTile name={icon} destructive={destructive} /> : null}
       <Text style={[styles.label, { color }]} numberOfLines={1}>
         {label}
       </Text>
@@ -161,11 +161,12 @@ export function ChoiceRow<T extends string | number>({
   );
 }
 
-export function IconTile({ name, tint }: { name: SymbolViewProps["name"]; tint: string }) {
+/** A neutral tile with a crimson icon (danger red for destructive rows), readable in both themes. */
+export function IconTile({ name, destructive }: { name: SymbolViewProps["name"]; destructive?: boolean }) {
   const t = useTheme();
   return (
-    <View style={[styles.tile, { backgroundColor: t.accentSoft }]}>
-      <SymbolView name={name} size={15} tintColor={tint} />
+    <View style={[styles.tile, { backgroundColor: t.iconTile }]}>
+      <SymbolView name={name} size={15} tintColor={destructive ? t.danger : t.accentText} />
     </View>
   );
 }
