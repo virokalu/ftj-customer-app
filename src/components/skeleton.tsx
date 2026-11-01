@@ -124,6 +124,27 @@ export function AlertRowsSkeleton({ rows = 3 }: { rows?: number }) {
 }
 
 /** My vehicles: rows shaped like the vehicle cards. */
+/** My vehicles in the two-per-row layout: poster-shaped tiles. */
+export function PosterGridSkeleton({ width, rows = 2 }: { width: number; rows?: number }) {
+  return (
+    <Skeleton style={{ gap: spacing.md }}>
+      {Array.from({ length: rows }, (_, r) => (
+        <View key={r} style={{ flexDirection: "row", gap: spacing.md }}>
+          {[0, 1].map((c) => (
+            <BoneCard
+              key={c}
+              style={{ width, height: Math.round(width * 1.3), justifyContent: "flex-end", gap: 6 }}
+            >
+              <Bone width="70%" height={14} />
+              <Bone width="45%" height={10} />
+            </BoneCard>
+          ))}
+        </View>
+      ))}
+    </Skeleton>
+  );
+}
+
 export function VehicleRowsSkeleton({ rows = 4 }: { rows?: number }) {
   return (
     <Skeleton style={{ gap: spacing.md }}>

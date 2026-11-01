@@ -54,7 +54,7 @@ export default function HomeScreen() {
           // Skeleton of the dashboard: the On the way card and the latest updates.
           <>
             <View style={{ gap: spacing.sm }}>
-              <SectionHeader title="On the way" />
+              <SectionHeader title="Tracking" />
               <OnTheWaySkeleton />
             </View>
             <View style={{ gap: spacing.sm }}>
@@ -76,7 +76,7 @@ export default function HomeScreen() {
           <>
             <View style={{ gap: spacing.sm }}>
               <SectionHeader
-                title={`On the way${home.data.activeCount ? ` (${home.data.activeCount})` : ""}`}
+                title={`Tracking${home.data.activeCount ? ` (${home.data.activeCount})` : ""}`}
                 action={{ label: "See all", href: "/vehicles" }}
               />
               {onTheWay.isPending ? (

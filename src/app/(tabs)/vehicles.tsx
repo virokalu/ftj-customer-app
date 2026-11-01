@@ -1,6 +1,7 @@
 import { router, useLocalSearchParams } from "expo-router";
-import { SymbolView } from "expo-symbols";
-import { useMemo, useState } from "react";
+import * as SecureStore from "expo-secure-store";
+import { SymbolView, type SymbolViewProps } from "expo-symbols";
+import { useEffect, useMemo, useState } from "react";
 import {
   FlatList,
   Pressable,
@@ -10,13 +11,14 @@ import {
   Text,
   TextInput,
   View,
+  useWindowDimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Chip, FilterSheet, defaultFilters, sortOptions, type ListFilters } from "@/components/filter-sheet";
 import { AppText, Button } from "@/components/ui";
-import { Bone, BoneCard, Skeleton, VehicleRowsSkeleton } from "@/components/skeleton";
-import { VehicleRow } from "@/components/vehicle-row";
+import { Bone, BoneCard, PosterGridSkeleton, Skeleton, VehicleRowsSkeleton } from "@/components/skeleton";
+import { BoardingPassCard, PosterTile } from "@/components/vehicle-cards";
 import { useTabBarSpace } from "@/components/tab-bar";
 import {
   activeStatuses,
@@ -29,6 +31,10 @@ import type { VehicleSummary } from "@/lib/api/schemas";
 import { radius, spacing, useTheme } from "@/theme/theme";
 
 type Tab = "active" | "history";
+type Layout = "list" | "grid";
+
+// The chosen card layout is kept on the device (not secret; just a preference).
+const LAYOUT_KEY = "ftj.vehicleLayout";
 
 // My vehicles (sheet 2): "On the way" with status chips, search and the filter sheet, and
 // "Purchase history" (delivered cars, a count and "customer since"; never any amounts).
@@ -43,6 +49,22 @@ export default function VehiclesScreen() {
   const [search, setSearch] = useState("");
   const [filters, setFilters] = useState<ListFilters>(defaultFilters);
   const [sheetOpen, setSheetOpen] = useState(false);
+
+  // One card per row ("Boarding pass") or two ("Poster tile"), switched by the customer.
+  const { width } = useWindowDimensions();
+  const tileWidth = (width - spacing.md * 3) / 2;
+  const [layout, setLayout] = useState<Layout>("list");
+  useEffect(() => {
+    void SecureStore.getItemAsync(LAYOUT_KEY)
+      .then((saved) => {
+        if (saved === "list" || saved === "grid") setLayout(saved);
+      })
+      .catch(() => undefined);
+  }, []);
+  const chooseLayout = (next: Layout) => {
+    setLayout(next);
+    void SecureStore.setItemAsync(LAYOUT_KEY, next).catch(() => undefined);
+  };
 
   const sort = sortOptions.find((o) => o.key === filters.sort) ?? sortOptions[0];
   const active = useVehicleList({
@@ -75,9 +97,19 @@ export default function VehiclesScreen() {
   return (
     <SafeAreaView edges={["top", "left", "right"]} style={{ flex: 1, backgroundColor: t.canvas }}>
       <FlatList
+        // FlatList cannot change its column count on the fly; a new key remounts it.
+        key={layout}
+        numColumns={layout === "grid" ? 2 : 1}
+        columnWrapperStyle={layout === "grid" ? { gap: spacing.md } : undefined}
         data={rows}
         keyExtractor={(v) => v.id}
-        renderItem={({ item }) => <VehicleRow vehicle={item} />}
+        renderItem={({ item }) =>
+          layout === "grid" ? (
+            <PosterTile vehicle={item} width={tileWidth} />
+          ) : (
+            <BoardingPassCard vehicle={item} />
+          )
+        }
         contentContainerStyle={{ padding: spacing.md, gap: spacing.md, paddingBottom: tabBarSpace }}
         onEndReached={() => {
           if (list.hasNextPage && !list.isFetchingNextPage) void list.fetchNextPage();
@@ -138,6 +170,18 @@ export default function VehiclesScreen() {
                   style={[styles.searchInput, { color: t.text }]}
                 />
               </View>
+              <LayoutButton
+                label="One per row"
+                icon={{ ios: "rectangle.grid.1x2", android: "view_agenda", web: "view_agenda" }}
+                selected={layout === "list"}
+                onPress={() => chooseLayout("list")}
+              />
+              <LayoutButton
+                label="Two per row"
+                icon={{ ios: "square.grid.2x2", android: "grid_view", web: "grid_view" }}
+                selected={layout === "grid"}
+                onPress={() => chooseLayout("grid")}
+              />
               {tab === "active" ? (
                 <Pressable
                   onPress={() => setSheetOpen(true)}
@@ -204,7 +248,11 @@ export default function VehiclesScreen() {
         }
         ListEmptyComponent={
           list.isPending ? (
-            <VehicleRowsSkeleton />
+            layout === "grid" ? (
+              <PosterGridSkeleton width={tileWidth} />
+            ) : (
+              <VehicleRowsSkeleton />
+            )
           ) : list.isError ? (
             <View style={{ gap: spacing.sm, marginTop: spacing.lg }}>
               <AppText muted>Couldn&apos;t load your vehicles.</AppText>
@@ -231,7 +279,15 @@ export default function VehiclesScreen() {
             />
           )
         }
-        ListFooterComponent={list.isFetchingNextPage ? <VehicleRowsSkeleton rows={1} /> : undefined}
+        ListFooterComponent={
+          list.isFetchingNextPage ? (
+            layout === "grid" ? (
+              <PosterGridSkeleton width={tileWidth} rows={1} />
+            ) : (
+              <VehicleRowsSkeleton rows={1} />
+            )
+          ) : undefined
+        }
       />
 
       <FilterSheet
@@ -291,6 +347,33 @@ function SegmentButton({
       >
         {label}
       </Text>
+    </Pressable>
+  );
+}
+
+// One of the two layout buttons next to the filter: solid crimson when selected.
+function LayoutButton({
+  label,
+  icon,
+  selected,
+  onPress,
+}: {
+  label: string;
+  icon: SymbolViewProps["name"];
+  selected: boolean;
+  onPress: () => void;
+}) {
+  const t = useTheme();
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ selected }}
+      hitSlop={4}
+      style={[styles.filterButton, { backgroundColor: selected ? t.accent : t.control }]}
+    >
+      <SymbolView name={icon} size={16} tintColor={selected ? t.onAccent : t.text} />
     </Pressable>
   );
 }
