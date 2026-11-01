@@ -3,7 +3,8 @@ import { SymbolView } from "expo-symbols";
 import { useEffect, useState } from "react";
 import { StyleSheet, Text, View, type StyleProp, type ViewStyle } from "react-native";
 
-import { statusLabel, statusTone } from "@/features/vehicles/status";
+import { statusLabel, statusTone, type JourneyStage } from "@/features/vehicles/status";
+import { JourneyIcon } from "@/components/journey-icons";
 import { freshAccessToken } from "@/lib/api/client";
 import type { VehicleStatus } from "@/lib/api/schemas";
 import { config } from "@/lib/config";
@@ -80,15 +81,25 @@ export function StatusChip({ status }: { status: VehicleStatus }) {
   );
 }
 
-// Loading port ---ship--- destination port. `progress` is 0..1 (see journeyProgress).
+// The marker shows where the car is ("Places" icons, see JourneyIcon); this is what VoiceOver says.
+const stageLabel: Record<JourneyStage, string> = {
+  loading: "At the yard",
+  sailing: "At sea",
+  arrived: "Arrived",
+};
+
+// Loading port ---marker--- destination port. `progress` is 0..1 (see journeyProgress), `stage`
+// picks the marker icon (see journeyStage).
 export function PortTrack({
   from,
   to,
   progress,
+  stage,
 }: {
   from: string | null;
   to: string | null;
   progress: number;
+  stage: JourneyStage;
 }) {
   const t = useTheme();
   const pct = `${Math.round(progress * 100)}%` as const;
@@ -96,21 +107,17 @@ export function PortTrack({
     <View
       style={styles.track}
       accessible
-      accessibilityLabel={`From ${from ?? "Japan"} to ${to ?? "destination"}`}
+      accessibilityLabel={`From ${from ?? "Japan"} to ${to ?? "destination"}. ${stageLabel[stage]}`}
     >
       <Text style={[styles.port, { color: t.text }]} numberOfLines={1}>
         {from ?? "Japan"}
       </Text>
-      {/* Inset by half the ship so the marker stays inside the track at 0% and 100%. */}
+      {/* Inset by half the marker so it stays inside the track at 0% and 100%. */}
       <View style={styles.line}>
         <View style={[styles.rail, { backgroundColor: t.border }]} />
         <View style={[styles.fill, { width: pct, backgroundColor: t.accent }]} />
-        <View style={[styles.ship, { left: pct, backgroundColor: t.accent, borderColor: t.background }]}>
-          <SymbolView
-            name={{ ios: "ferry.fill", android: "directions_boat", web: "directions_boat" }}
-            size={10}
-            tintColor={t.onAccent}
-          />
+        <View style={[styles.ship, { left: pct, backgroundColor: t.accent, borderColor: t.card }]}>
+          <JourneyIcon stage={stage} size={14} color={t.onAccent} cutout={t.accent} />
         </View>
       </View>
       <Text style={[styles.port, { color: t.text, textAlign: "right" }]} numberOfLines={1}>

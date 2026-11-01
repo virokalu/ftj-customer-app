@@ -14,7 +14,7 @@ import {
 import { raised } from "@/components/ui";
 import { PortTrack, VehicleCover } from "@/components/vehicle-bits";
 import { openDocument } from "@/features/documents/open-document";
-import { formatDate, journeyLine, journeyProgress } from "@/features/vehicles/status";
+import { formatDate, journeyLine, journeyProgress, journeyStage } from "@/features/vehicles/status";
 import { documentLabels, nextStep, stepDate, stepLabel } from "@/features/vehicles/timeline";
 import { ApiError } from "@/lib/api/client";
 import type { Photo, TimelineStep, VehicleDetail, VehicleDocument } from "@/lib/api/schemas";
@@ -276,6 +276,7 @@ export function OverviewTab({
             from={vehicle.portOfLoading}
             to={vehicle.portOfDischarge ?? vehicle.destination}
             progress={journeyProgress(vehicle)}
+            stage={journeyStage(vehicle)}
           />
           <View style={styles.pairs}>
             <Pair label="Departure (ETD)" value={formatDate(vehicle.etd)} />

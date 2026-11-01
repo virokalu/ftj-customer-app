@@ -78,6 +78,21 @@ export function journeyLine(v: VehicleSummary, now = new Date()): string {
   }
 }
 
+/** Where the shipment is, for the marker on the port-to-port track: cargo, ship or tick. */
+export type JourneyStage = "loading" | "sailing" | "arrived";
+
+export function journeyStage(v: Pick<VehicleSummary, "status">): JourneyStage {
+  switch (v.status) {
+    case "SHIPPED":
+      return "sailing";
+    case "ARRIVED":
+    case "DELIVERED":
+      return "arrived";
+    default:
+      return "loading"; // PENDING, BOOKING_RECEIVED (and unknown): still on land in Japan
+  }
+}
+
 // Position of the ship marker on the port-to-port track, 0 (loading port) to 1 (destination).
 // While at sea it moves with the calendar between ETD and ETA.
 export function journeyProgress(v: VehicleSummary, now = new Date()): number {

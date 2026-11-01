@@ -1,10 +1,16 @@
 import { router } from "expo-router";
-import { useState } from "react";
-import { FlatList, Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-native";
+import { Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-native";
+import Animated, {
+  interpolateColor,
+  useAnimatedScrollHandler,
+  useAnimatedStyle,
+  useSharedValue,
+  type SharedValue,
+} from "react-native-reanimated";
 
 import { raised } from "@/components/ui";
 import { PortTrack, StatusChip, VehicleCover } from "@/components/vehicle-bits";
-import { journeyLine, journeyProgress, vehicleTitle } from "@/features/vehicles/status";
+import { journeyLine, journeyProgress, journeyStage, vehicleTitle } from "@/features/vehicles/status";
 import type { VehicleSummary } from "@/lib/api/schemas";
 import { radius, spacing, useTheme } from "@/theme/theme";
 
@@ -14,13 +20,18 @@ const PEEK = 28;
 /** Swipeable "On the way" cards (Home, sheet 2). Full-bleed: it manages its own side padding. */
 export function OnTheWayCarousel({ vehicles }: { vehicles: VehicleSummary[] }) {
   const { width } = useWindowDimensions();
-  const [index, setIndex] = useState(0);
   const cardWidth = width - spacing.md * 2 - (vehicles.length > 1 ? PEEK : 0);
   const interval = cardWidth + spacing.md;
+  // The scroll position, tracked on the UI thread every frame, so the dots follow the finger
+  // instead of waiting for the swipe to come to rest.
+  const scrollX = useSharedValue(0);
+  const onScroll = useAnimatedScrollHandler((e) => {
+    scrollX.set(e.contentOffset.x);
+  });
 
   return (
     <View style={{ gap: spacing.sm }}>
-      <FlatList
+      <Animated.FlatList
         data={vehicles}
         keyExtractor={(v) => v.id}
         horizontal
@@ -29,10 +40,11 @@ export function OnTheWayCarousel({ vehicles }: { vehicles: VehicleSummary[] }) {
         decelerationRate="fast"
         contentContainerStyle={{ paddingHorizontal: spacing.md }}
         ItemSeparatorComponent={() => <View style={{ width: spacing.md }} />}
-        onMomentumScrollEnd={(e) => setIndex(Math.round(e.nativeEvent.contentOffset.x / interval))}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
         renderItem={({ item }) => <OnTheWayCard vehicle={item} width={cardWidth} />}
       />
-      {vehicles.length > 1 ? <Dots count={vehicles.length} active={index} /> : null}
+      {vehicles.length > 1 ? <Dots count={vehicles.length} scrollX={scrollX} interval={interval} /> : null}
     </View>
   );
 }
@@ -72,6 +84,7 @@ function OnTheWayCard({ vehicle, width }: { vehicle: VehicleSummary; width: numb
             from={vehicle.portOfLoading}
             to={vehicle.portOfDischarge ?? vehicle.destination}
             progress={journeyProgress(vehicle)}
+            stage={journeyStage(vehicle)}
           />
         </View>
       </View>
@@ -79,22 +92,51 @@ function OnTheWayCard({ vehicle, width }: { vehicle: VehicleSummary; width: numb
   );
 }
 
-function Dots({ count, active }: { count: number; active: number }) {
-  const t = useTheme();
+// Page dots that follow the swipe live: each dot widens into the crimson pill and takes its
+// colour by how close the scroll is to its card, so the pill stretches across from one dot to
+// the next while dragging. Driven by the finger, not an animation, so it is the same under
+// Reduce Motion.
+function Dots({
+  count,
+  scrollX,
+  interval,
+}: {
+  count: number;
+  scrollX: SharedValue<number>;
+  interval: number;
+}) {
   return (
     <View style={styles.dots} importantForAccessibility="no-hide-descendants">
       {Array.from({ length: count }, (_, i) => (
-        <View
-          key={i}
-          style={[
-            styles.dot,
-            i === active ? { width: 16, backgroundColor: t.accent } : { backgroundColor: t.border },
-          ]}
-        />
+        <Dot key={i} index={i} scrollX={scrollX} interval={interval} />
       ))}
     </View>
   );
 }
+
+function Dot({
+  index,
+  scrollX,
+  interval,
+}: {
+  index: number;
+  scrollX: SharedValue<number>;
+  interval: number;
+}) {
+  const t = useTheme();
+  const style = useAnimatedStyle(() => {
+    // 1 when this dot's card is centred, falling to 0 one card away.
+    const near = Math.max(0, 1 - Math.abs(scrollX.value / interval - index));
+    return {
+      width: DOT + (PILL - DOT) * near,
+      backgroundColor: interpolateColor(near, [0, 1], [t.border, t.accent]),
+    };
+  });
+  return <Animated.View style={[styles.dot, style]} />;
+}
+
+const DOT = 6;
+const PILL = 16;
 
 const styles = StyleSheet.create({
   card: { borderRadius: radius.lg, borderWidth: StyleSheet.hairlineWidth },
@@ -105,5 +147,5 @@ const styles = StyleSheet.create({
   headline: { fontSize: 19, fontWeight: "700" },
   subtitle: { fontSize: 13 },
   dots: { flexDirection: "row", justifyContent: "center", gap: 5 },
-  dot: { width: 6, height: 6, borderRadius: 3 },
+  dot: { height: DOT, borderRadius: DOT / 2 },
 });

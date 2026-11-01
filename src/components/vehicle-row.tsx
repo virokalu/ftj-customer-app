@@ -2,7 +2,13 @@ import { router } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { PortTrack, StatusChip, VehicleCover } from "@/components/vehicle-bits";
-import { formatDate, journeyLine, journeyProgress, vehicleTitle } from "@/features/vehicles/status";
+import {
+  formatDate,
+  journeyLine,
+  journeyProgress,
+  journeyStage,
+  vehicleTitle,
+} from "@/features/vehicles/status";
 import type { VehicleSummary } from "@/lib/api/schemas";
 import { radius, spacing, useTheme } from "@/theme/theme";
 
@@ -50,6 +56,7 @@ export function VehicleRow({ vehicle }: { vehicle: VehicleSummary }) {
           from={vehicle.portOfLoading}
           to={vehicle.portOfDischarge ?? vehicle.destination}
           progress={journeyProgress(vehicle)}
+          stage={journeyStage(vehicle)}
         />
       )}
     </Pressable>
