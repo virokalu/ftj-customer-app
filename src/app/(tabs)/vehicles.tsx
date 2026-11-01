@@ -4,7 +4,6 @@ import { SymbolView, type SymbolViewProps } from "expo-symbols";
 import { useEffect, useMemo, useState } from "react";
 import {
   FlatList,
-  Pressable,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -16,7 +15,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Chip, FilterSheet, defaultFilters, sortOptions, type ListFilters } from "@/components/filter-sheet";
-import { AppText, Button } from "@/components/ui";
+import { AppText, Button, PopButton } from "@/components/ui";
 import { Bone, BoneCard, PosterGridSkeleton, Skeleton, VehicleRowsSkeleton } from "@/components/skeleton";
 import { BoardingPassCard, PosterTile } from "@/components/vehicle-cards";
 import { useTabBarSpace } from "@/components/tab-bar";
@@ -126,7 +125,7 @@ export default function VehiclesScreen() {
           <View style={{ gap: spacing.md }}>
             <View style={styles.titleRow}>
               <Text style={[styles.title, { color: t.text }]}>My vehicles</Text>
-              <Pressable
+              <PopButton
                 onPress={() => router.push("/link-vehicle")}
                 accessibilityRole="button"
                 accessibilityLabel="Link a vehicle"
@@ -134,7 +133,7 @@ export default function VehiclesScreen() {
                 style={[styles.circle, { borderColor: t.border }]}
               >
                 <SymbolView name={{ ios: "plus", android: "add", web: "add" }} size={16} tintColor={t.text} />
-              </Pressable>
+              </PopButton>
             </View>
 
             <View style={[styles.segmented, { backgroundColor: t.control }]} accessibilityRole="tablist">
@@ -183,7 +182,7 @@ export default function VehiclesScreen() {
                 onPress={() => chooseLayout("grid")}
               />
               {tab === "active" ? (
-                <Pressable
+                <PopButton
                   onPress={() => setSheetOpen(true)}
                   accessibilityRole="button"
                   accessibilityLabel={filtered ? "Filters, active" : "Filters"}
@@ -199,7 +198,7 @@ export default function VehiclesScreen() {
                     size={16}
                     tintColor={filtered ? t.accent : t.text}
                   />
-                </Pressable>
+                </PopButton>
               ) : null}
             </View>
 
@@ -324,7 +323,7 @@ function SegmentButton({
 }) {
   const t = useTheme();
   return (
-    <Pressable
+    <PopButton
       onPress={onPress}
       accessibilityRole="tab"
       accessibilityState={{ selected }}
@@ -347,7 +346,7 @@ function SegmentButton({
       >
         {label}
       </Text>
-    </Pressable>
+    </PopButton>
   );
 }
 
@@ -365,7 +364,7 @@ function LayoutButton({
 }) {
   const t = useTheme();
   return (
-    <Pressable
+    <PopButton
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={label}
@@ -374,7 +373,7 @@ function LayoutButton({
       style={[styles.filterButton, { backgroundColor: selected ? t.accent : t.control }]}
     >
       <SymbolView name={icon} size={16} tintColor={selected ? t.onAccent : t.text} />
-    </Pressable>
+    </PopButton>
   );
 }
 

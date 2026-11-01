@@ -31,8 +31,8 @@ function stubText(v: VehicleSummary): string | null {
 const NOTCH = 16;
 
 /**
- * One per row, "Boarding pass": photo on the left, the name and the route between the ports on
- * the right, then a dashed tear line with ticket notches and a stub with the status and journey.
+ * One per row, "Boarding pass": photo on the left, the name, status and journey on the right,
+ * then a dashed tear line with ticket notches and a stub with the route between the ports.
  */
 export function BoardingPassCard({ vehicle }: { vehicle: VehicleSummary }) {
   const t = useTheme();
@@ -60,14 +60,14 @@ export function BoardingPassCard({ vehicle }: { vehicle: VehicleSummary }) {
               {vehicleSpec(vehicle)}
             </Text>
           </View>
-          {delivered ? null : (
-            <PortTrack
-              from={vehicle.portOfLoading}
-              to={vehicle.portOfDischarge ?? vehicle.destination}
-              progress={journeyProgress(vehicle)}
-              stage={journeyStage(vehicle)}
-            />
-          )}
+          <View style={styles.passStatus}>
+            <StatusChip status={vehicle.status} />
+            {stub ? (
+              <Text style={[styles.stubText, { color: t.textMuted }]} numberOfLines={1}>
+                {stub}
+              </Text>
+            ) : null}
+          </View>
         </View>
       </View>
 
@@ -79,12 +79,12 @@ export function BoardingPassCard({ vehicle }: { vehicle: VehicleSummary }) {
       </View>
 
       <View style={styles.stub}>
-        <StatusChip status={vehicle.status} />
-        {stub ? (
-          <Text style={[styles.stubText, { color: t.textMuted }]} numberOfLines={1}>
-            {stub}
-          </Text>
-        ) : null}
+        <PortTrack
+          from={vehicle.portOfLoading}
+          to={vehicle.portOfDischarge ?? vehicle.destination}
+          progress={delivered ? 1 : journeyProgress(vehicle)}
+          stage={journeyStage(vehicle)}
+        />
       </View>
     </Pressable>
   );
@@ -92,8 +92,8 @@ export function BoardingPassCard({ vehicle }: { vehicle: VehicleSummary }) {
 
 /**
  * Two per row, "Poster tile": the photo fills the card, a dark fade at the bottom carries the name
- * and details in white, the status sits top-left, and a thin crimson line along the bottom edge
- * shows how far along the journey the car is.
+ * and details in white, the status sits top-left, and a rounded crimson progress bar under the
+ * journey text shows how far along the journey the car is.
  */
 export function PosterTile({ vehicle, width }: { vehicle: VehicleSummary; width: number }) {
   const t = useTheme();
@@ -138,14 +138,14 @@ export function PosterTile({ vehicle, width }: { vehicle: VehicleSummary; width:
               {stub}
             </Text>
           ) : null}
-        </View>
-        <View style={styles.posterTrack}>
-          <View
-            style={[
-              styles.posterFill,
-              { width: `${Math.round(progress * 100)}%`, backgroundColor: t.accent },
-            ]}
-          />
+          <View style={styles.posterTrack}>
+            <View
+              style={[
+                styles.posterFill,
+                { width: `${Math.round(progress * 100)}%`, backgroundColor: t.accent },
+              ]}
+            />
+          </View>
         </View>
       </View>
     </Pressable>
@@ -168,16 +168,9 @@ const styles = StyleSheet.create({
   },
   notchLeft: { left: -NOTCH / 2 },
   notchRight: { right: -NOTCH / 2 },
-  stub: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: spacing.sm,
-    paddingHorizontal: spacing.md,
-    paddingTop: spacing.xs,
-    paddingBottom: spacing.md,
-  },
-  stubText: { flexShrink: 1, fontSize: 13, fontWeight: "600", textAlign: "right" },
+  passStatus: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 6 },
+  stub: { paddingHorizontal: spacing.md, paddingTop: spacing.xs, paddingBottom: spacing.md },
+  stubText: { flexShrink: 1, fontSize: 13, fontWeight: "600" },
   poster: { borderRadius: radius.lg, borderWidth: StyleSheet.hairlineWidth },
   posterClip: { flex: 1, borderRadius: radius.lg, overflow: "hidden" },
   fade: { position: "absolute", left: 0, right: 0, bottom: 0, height: "55%" },
@@ -192,12 +185,11 @@ const styles = StyleSheet.create({
   posterName: { color: "#FFFFFF", fontSize: 15, fontWeight: "700" },
   posterSub: { color: "rgba(255,255,255,0.85)", fontSize: 11.5, fontWeight: "500" },
   posterTrack: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: 3,
-    backgroundColor: "rgba(255,255,255,0.25)",
+    height: 5,
+    borderRadius: 2.5,
+    marginTop: spacing.xs + 2,
+    overflow: "hidden",
+    backgroundColor: "rgba(255,255,255,0.28)",
   },
-  posterFill: { height: 3 },
+  posterFill: { height: 5, borderRadius: 2.5 },
 });

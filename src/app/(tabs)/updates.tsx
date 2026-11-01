@@ -1,10 +1,10 @@
-import { Pressable, RefreshControl, SectionList, StyleSheet, Text, View } from "react-native";
+import { RefreshControl, SectionList, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { AlertRow, useOpenAlert } from "@/components/alert-row";
 import { AlertRowsSkeleton, Bone, Skeleton } from "@/components/skeleton";
 import { useTabBarSpace } from "@/components/tab-bar";
-import { AppText, Button, Centered } from "@/components/ui";
+import { AppText, Button, Centered, PopButton } from "@/components/ui";
 import { useAlerts, useMarkAlertsRead } from "@/features/vehicles/hooks";
 import { radius, spacing, useTheme } from "@/theme/theme";
 
@@ -26,14 +26,14 @@ export default function UpdatesScreen() {
       <View style={styles.titleRow}>
         <Text style={[styles.title, { color: t.text }]}>Updates</Text>
         {unread > 0 ? (
-          <Pressable
+          <PopButton
             onPress={() => markRead.mutate({ all: true })}
             disabled={markRead.isPending}
             accessibilityRole="button"
             hitSlop={8}
           >
             <Text style={{ color: t.accentText, fontSize: 15, fontWeight: "600" }}>Mark all read</Text>
-          </Pressable>
+          </PopButton>
         ) : null}
       </View>
       {isPending ? (

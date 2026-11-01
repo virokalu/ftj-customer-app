@@ -32,12 +32,12 @@ export function GlassTabBar({ state, descriptors, emitter, navigateToTab }: TabB
     // Outer view: position and shadow; the glass is clipped to the rounded shape in its own layer.
     <View style={[styles.bar, { bottom }]} pointerEvents="box-none">
       <View
-        style={[styles.glass, { borderColor: dark ? "rgba(255,255,255,0.1)" : "rgba(255,255,255,0.45)" }]}
+        style={[styles.glass, { borderColor: dark ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.35)" }]}
         pointerEvents="none"
       >
         <BlurView
           // Ultra-thin material at a light intensity: more of the screen shows through the bar.
-          intensity={dark ? 40 : 45}
+          intensity={dark ? 22 : 25}
           tint={dark ? "systemUltraThinMaterialDark" : "systemUltraThinMaterialLight"}
           style={StyleSheet.absoluteFill}
         />
@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
     height: TAB_BAR_HEIGHT,
     borderRadius: TAB_BAR_RADIUS,
     shadowColor: "#000000",
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.06,
     shadowRadius: 18,
     shadowOffset: { width: 0, height: 8 },
     elevation: 10,

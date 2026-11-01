@@ -1,10 +1,10 @@
 import { router, useLocalSearchParams } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { useState } from "react";
-import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
+import { RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { AppText, Button, Centered, raised } from "@/components/ui";
+import { AppText, Button, Centered, PopButton, raised } from "@/components/ui";
 import { PhotoViewer } from "@/components/photo-viewer";
 import { VehiclePageSkeleton } from "@/components/skeleton";
 import { StatusChip } from "@/components/vehicle-bits";
@@ -45,7 +45,7 @@ export default function VehicleScreen() {
   };
 
   const back = (
-    <Pressable
+    <PopButton
       onPress={() => (router.canGoBack() ? router.back() : router.replace("/"))}
       accessibilityRole="button"
       accessibilityLabel="Back"
@@ -61,7 +61,7 @@ export default function VehicleScreen() {
         size={16}
         tintColor={t.text}
       />
-    </Pressable>
+    </PopButton>
   );
 
   if (vehicle.isPending) {
@@ -157,10 +157,11 @@ export default function VehicleScreen() {
       >
         {/* Chat is not built yet: this opens Messages. Later it opens (or starts) the conversation
             for this vehicle (guide §12). No phone button: the API has no agent phone number. */}
-        <Pressable
+        <PopButton
+          contentStyle={styles.askContent}
           onPress={() => router.push("/messages")}
           accessibilityRole="button"
-          style={({ pressed }) => [styles.ask, { backgroundColor: t.accent, opacity: pressed ? 0.85 : 1 }]}
+          style={[styles.ask, { backgroundColor: t.accent }]}
         >
           <SymbolView
             name={{ ios: "bubble.left", android: "chat_bubble", web: "chat_bubble" }}
@@ -168,7 +169,7 @@ export default function VehicleScreen() {
             tintColor={t.onAccent}
           />
           <Text style={{ color: t.onAccent, fontSize: 16, fontWeight: "700" }}>Ask about this car</Text>
-        </Pressable>
+        </PopButton>
       </View>
 
       <PhotoViewer
@@ -206,9 +207,8 @@ const styles = StyleSheet.create({
   ask: {
     minHeight: 50,
     borderRadius: radius.md,
-    flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: spacing.sm,
   },
+  askContent: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
 });

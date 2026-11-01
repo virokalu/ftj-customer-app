@@ -11,7 +11,7 @@ import {
   useWindowDimensions,
 } from "react-native";
 
-import { raised } from "@/components/ui";
+import { PopButton, raised } from "@/components/ui";
 import { DocumentRowsSkeleton, PhotoGridSkeleton, TimelineSkeleton } from "@/components/skeleton";
 import { PortTrack, VehicleCover } from "@/components/vehicle-bits";
 import { openDocument } from "@/features/documents/open-document";
@@ -125,14 +125,14 @@ export function StatusCard({
               {nextDate ? ` · ${nextDate.replace("Expected ", "")}` : ""}
             </Text>
           </View>
-          <Pressable
+          <PopButton
             onPress={onDetails}
             accessibilityRole="button"
             accessibilityLabel="Timeline details"
             hitSlop={8}
           >
             <Text style={{ color: t.accentText, fontSize: 14, fontWeight: "600" }}>Details</Text>
-          </Pressable>
+          </PopButton>
         </View>
       ) : null}
     </View>
@@ -172,7 +172,7 @@ export function Segmented({ value, onChange }: { value: VehicleTab; onChange: (v
       {tabs.map((tab) => {
         const selected = tab.key === value;
         return (
-          <Pressable
+          <PopButton
             key={tab.key}
             onPress={() => onChange(tab.key)}
             accessibilityRole="tab"
@@ -195,7 +195,7 @@ export function Segmented({ value, onChange }: { value: VehicleTab; onChange: (v
             >
               {tab.label}
             </Text>
-          </Pressable>
+          </PopButton>
         );
       })}
     </View>

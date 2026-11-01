@@ -93,6 +93,34 @@ export function PopPressable({
   );
 }
 
+/**
+ * A button whose content (its text or icon) pops once when pressed, while the button itself stays
+ * put and keeps its own `style` (which may be a function of `pressed`). `contentStyle` lays out
+ * the content when there is more than one child (e.g. an icon + text row).
+ */
+export function PopButton({
+  children,
+  contentStyle,
+  onPressIn,
+  ...props
+}: Omit<PressableProps, "children"> & {
+  children: ReactNode;
+  contentStyle?: StyleProp<ViewStyle>;
+}) {
+  const pop = usePop();
+  return (
+    <Pressable
+      {...props}
+      onPressIn={(e) => {
+        pop.trigger();
+        onPressIn?.(e);
+      }}
+    >
+      <Animated.View style={[contentStyle, pop.style]}>{children}</Animated.View>
+    </Pressable>
+  );
+}
+
 export function Button({
   label: text,
   onPress,
@@ -100,7 +128,7 @@ export function Button({
   disabled,
   variant = "primary",
   haptic,
-  pop,
+  pop = true,
 }: {
   label: string;
   onPress: () => void;
@@ -110,8 +138,8 @@ export function Button({
   /** A light haptic "click" on press, like native iOS buttons (Welcome, Sign in). */
   haptic?: boolean;
   /**
-   * Press feedback for the Welcome / Sign in buttons: the label pops once (to 105% and back)
-   * instead of the whole button dimming while pressed.
+   * Press feedback: the label pops once (to 105% and back) instead of the whole button dimming
+   * while pressed. On by default for every button.
    */
   pop?: boolean;
 }) {

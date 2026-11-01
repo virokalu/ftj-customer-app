@@ -7,7 +7,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { AlertRow, useOpenAlert } from "@/components/alert-row";
 import { OnTheWayCarousel } from "@/components/on-the-way";
 import { AlertRowsSkeleton, Bone, OnTheWaySkeleton, Skeleton } from "@/components/skeleton";
-import { AppText, Button, raised } from "@/components/ui";
+import { AppText, Button, PopButton, raised } from "@/components/ui";
 import { useTabBarSpace } from "@/components/tab-bar";
 import { useAlerts, useHome, useOnTheWay } from "@/features/vehicles/hooks";
 import { formatDate, vehicleName } from "@/features/vehicles/status";
@@ -166,7 +166,7 @@ function Header({ name }: { name: string | null }) {
           </Skeleton>
         )}
       </View>
-      <Pressable
+      <PopButton
         onPress={() => router.push("/messages")}
         accessibilityRole="button"
         accessibilityLabel="Messages"
@@ -178,8 +178,8 @@ function Header({ name }: { name: string | null }) {
           size={19}
           tintColor={t.text}
         />
-      </Pressable>
-      <Pressable
+      </PopButton>
+      <PopButton
         onPress={() => router.push("/account")}
         accessibilityRole="button"
         accessibilityLabel="Account"
@@ -189,7 +189,7 @@ function Header({ name }: { name: string | null }) {
         <Text style={{ color: t.onAccent, fontWeight: "700", fontSize: 14 }}>
           {name ? initials(name) : ""}
         </Text>
-      </Pressable>
+      </PopButton>
     </View>
   );
 }
@@ -207,9 +207,9 @@ function SectionHeader({
       <Text style={[styles.sectionTitle, { color: t.text }]}>{title}</Text>
       {action ? (
         <Link href={action.href} asChild>
-          <Pressable accessibilityRole="link" hitSlop={8}>
+          <PopButton accessibilityRole="link" hitSlop={8}>
             <Text style={{ color: t.accentText, fontSize: 14, fontWeight: "600" }}>{action.label}</Text>
-          </Pressable>
+          </PopButton>
         </Link>
       ) : null}
     </View>
@@ -246,12 +246,13 @@ function Shortcuts() {
   return (
     <View style={styles.shortcuts}>
       {shortcuts.map((s) => (
-        <Pressable
+        <PopButton
+          contentStyle={styles.shortcutContent}
           key={s.label}
           onPress={s.go}
           accessibilityRole="button"
           accessibilityLabel={s.label}
-          style={({ pressed }) => [styles.shortcut, { opacity: pressed ? 0.6 : 1 }]}
+          style={styles.shortcut}
         >
           <View style={[styles.shortcutIcon, raised, { backgroundColor: t.card, borderColor: t.border }]}>
             <SymbolView name={s.icon} size={20} tintColor={t.accentText} />
@@ -259,7 +260,7 @@ function Shortcuts() {
           <Text style={{ color: t.text, fontSize: 12, fontWeight: "500" }} numberOfLines={1}>
             {s.label}
           </Text>
-        </Pressable>
+        </PopButton>
       ))}
     </View>
   );
@@ -314,7 +315,7 @@ function TeamCard() {
         <Text style={{ color: t.text, fontSize: 15, fontWeight: "600" }}>CargoDev team</Text>
         <Text style={{ color: t.textMuted, fontSize: 13 }}>Questions about a vehicle? Message us.</Text>
       </View>
-      <Pressable
+      <PopButton
         onPress={() => router.push("/messages")}
         accessibilityRole="button"
         accessibilityLabel="Message the team"
@@ -326,7 +327,7 @@ function TeamCard() {
           size={18}
           tintColor={t.text}
         />
-      </Pressable>
+      </PopButton>
     </View>
   );
 }
@@ -413,7 +414,8 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 20, fontWeight: "700" },
   panel: { borderRadius: radius.lg, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: spacing.md },
   shortcuts: { flexDirection: "row", justifyContent: "space-between" },
-  shortcut: { flex: 1, alignItems: "center", gap: 6 },
+  shortcut: { flex: 1, alignItems: "center" },
+  shortcutContent: { alignItems: "center", gap: 6 },
   shortcutIcon: {
     width: 52,
     height: 52,

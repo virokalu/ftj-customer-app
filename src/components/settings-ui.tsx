@@ -2,7 +2,7 @@ import { SymbolView, type SymbolViewProps } from "expo-symbols";
 import { Children, Fragment, type ReactNode } from "react";
 import { Pressable, StyleSheet, Switch, Text, View } from "react-native";
 
-import { raised } from "@/components/ui";
+import { PopButton, raised } from "@/components/ui";
 import { radius, spacing, useTheme } from "@/theme/theme";
 
 // Grouped settings list (Account and its sub-screens): a caption, then rounded rows with
@@ -129,7 +129,7 @@ export function ChoiceRow<T extends string | number>({
         {options.map((o) => {
           const selected = o.value === value;
           return (
-            <Pressable
+            <PopButton
               key={String(o.value)}
               onPress={() => onChange(o.value)}
               accessibilityRole="radio"
@@ -153,7 +153,7 @@ export function ChoiceRow<T extends string | number>({
               >
                 {o.label}
               </Text>
-            </Pressable>
+            </PopButton>
           );
         })}
       </View>

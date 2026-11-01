@@ -2,7 +2,7 @@ import { SymbolView } from "expo-symbols";
 import { useState, type ReactNode } from "react";
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
-import { Button } from "@/components/ui";
+import { Button, PopButton } from "@/components/ui";
 import { activeStatuses } from "@/features/vehicles/hooks";
 import { statusLabel } from "@/features/vehicles/status";
 import type { VehicleFilters } from "@/lib/api/endpoints";
@@ -53,17 +53,17 @@ export function FilterSheet({
     >
       <View style={{ flex: 1, backgroundColor: t.background }}>
         <View style={[styles.header, { borderBottomColor: t.border }]}>
-          <Pressable onPress={() => setDraft(defaultFilters)} accessibilityRole="button" hitSlop={8}>
+          <PopButton onPress={() => setDraft(defaultFilters)} accessibilityRole="button" hitSlop={8}>
             <Text style={{ color: t.accentText, fontSize: 16, fontWeight: "600" }}>Reset</Text>
-          </Pressable>
+          </PopButton>
           <Text style={[styles.title, { color: t.text }]}>Filter vehicles on the way</Text>
-          <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Close" hitSlop={8}>
+          <PopButton onPress={onClose} accessibilityRole="button" accessibilityLabel="Close" hitSlop={8}>
             <SymbolView
               name={{ ios: "xmark", android: "close", web: "close" }}
               size={16}
               tintColor={t.accentText}
             />
-          </Pressable>
+          </PopButton>
         </View>
 
         <ScrollView contentContainerStyle={{ padding: spacing.md, gap: spacing.lg }}>
@@ -160,7 +160,7 @@ export function Chip({
 }) {
   const t = useTheme();
   return (
-    <Pressable
+    <PopButton
       onPress={onPress}
       accessibilityRole="button"
       accessibilityState={{ selected }}
@@ -172,7 +172,7 @@ export function Chip({
       ]}
     >
       <Text style={{ color: selected ? t.onAccent : t.text, fontSize: 14, fontWeight: "600" }}>{label}</Text>
-    </Pressable>
+    </PopButton>
   );
 }
 

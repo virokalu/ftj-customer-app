@@ -3,7 +3,6 @@ import { useState } from "react";
 import {
   FlatList,
   Modal,
-  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -12,6 +11,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { PopButton } from "@/components/ui";
 import { VehicleCover } from "@/components/vehicle-bits";
 import type { Photo } from "@/lib/api/schemas";
 import { spacing } from "@/theme/theme";
@@ -74,7 +74,7 @@ export function PhotoViewer({
           )}
         />
         <View style={[styles.bar, { top: insets.top + spacing.sm }]}>
-          <Pressable
+          <PopButton
             onPress={onClose}
             accessibilityRole="button"
             accessibilityLabel="Close photos"
@@ -86,7 +86,7 @@ export function PhotoViewer({
               size={16}
               tintColor="#FFFFFF"
             />
-          </Pressable>
+          </PopButton>
           <Text style={styles.counter}>
             {index + 1} of {photos.length}
           </Text>

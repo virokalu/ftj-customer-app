@@ -9,7 +9,7 @@ import { ProfileSkeleton } from "@/components/skeleton";
 import { Button, raised } from "@/components/ui";
 import { useTabBarSpace } from "@/components/tab-bar";
 import { fromServerTheme, setAppearance } from "@/features/account/appearance";
-import { useUpdateMe } from "@/features/account/hooks";
+import { useUpdateTheme } from "@/features/account/hooks";
 import { useAuth } from "@/features/auth/auth-context";
 import { useMe } from "@/features/vehicles/hooks";
 import { initials } from "@/lib/format";
@@ -29,29 +29,21 @@ export default function AccountScreen() {
   const tabBarSpace = useTabBarSpace();
   const { signOut } = useAuth();
   const { data: me } = useMe();
-  const updateMe = useUpdateMe();
+  const updateTheme = useUpdateTheme();
   const [signingOut, setSigningOut] = useState(false);
-  // The tapped choice shows at once; the server value takes over again once saved.
-  const [pendingAppearance, setPendingAppearance] = useState<AppearancePreference | null>(null);
 
-  const appearance = pendingAppearance ?? fromServerTheme(me?.theme ?? null);
+  // The cached profile changes the moment a choice is tapped (see useUpdateTheme), so this is
+  // always the latest choice, also while it is being saved.
+  const appearance = fromServerTheme(me?.theme ?? null);
 
   function changeAppearance(next: AppearancePreference) {
     if (next === appearance) return;
-    const previous = appearance;
-    // Applied at once on this device; saved to the account in the background.
-    setPendingAppearance(next);
+    // Applied at once on this device; saved to the account in the background. If the save
+    // fails, the profile goes back to the previous choice and the tabs layout applies it.
     void setAppearance(next);
-    updateMe.mutate(
-      { theme: next },
-      {
-        onSettled: () => setPendingAppearance(null),
-        onError: () => {
-          void setAppearance(previous);
-          Alert.alert("Couldn't save Appearance", "Please try again.");
-        },
-      },
-    );
+    updateTheme.mutate(next, {
+      onError: () => Alert.alert("Couldn't save Appearance", "Please try again."),
+    });
   }
 
   function confirmSignOut() {
