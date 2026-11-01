@@ -105,7 +105,8 @@ export default function VehicleScreen() {
   }
 
   const v = vehicle.data;
-  const subtitle = [v.year, v.serial, v.chassisNo].filter(Boolean).join(" · ");
+  // Grade and chassis number: the details a customer recognises (no internal FTJ serial).
+  const subtitle = [v.grade, v.chassisNo ? `Chassis ${v.chassisNo}` : null].filter(Boolean).join(" · ");
 
   return (
     <View style={{ flex: 1, backgroundColor: t.canvas }}>
@@ -173,7 +174,7 @@ export default function VehicleScreen() {
       <PhotoViewer
         photos={photos.data ?? []}
         startIndex={viewerIndex}
-        serial={v.serial}
+        vehicleName={vehicleTitle(v)}
         onClose={() => setViewerIndex(null)}
       />
     </View>

@@ -128,7 +128,7 @@ export default function VehiclesScreen() {
                 <TextInput
                   value={search}
                   onChangeText={setSearch}
-                  placeholder="Serial, chassis or model"
+                  placeholder="Make, model or chassis"
                   placeholderTextColor={t.textMuted}
                   autoCapitalize="none"
                   autoCorrect={false}

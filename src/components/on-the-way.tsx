@@ -10,7 +10,13 @@ import Animated, {
 
 import { raised } from "@/components/ui";
 import { PortTrack, StatusChip, VehicleCover } from "@/components/vehicle-bits";
-import { journeyLine, journeyProgress, journeyStage, vehicleTitle } from "@/features/vehicles/status";
+import {
+  journeyLine,
+  journeyProgress,
+  journeyStage,
+  vehicleName,
+  vehicleSpec,
+} from "@/features/vehicles/status";
 import type { VehicleSummary } from "@/lib/api/schemas";
 import { radius, spacing, useTheme } from "@/theme/theme";
 
@@ -51,7 +57,7 @@ export function OnTheWayCarousel({ vehicles }: { vehicles: VehicleSummary[] }) {
 
 function OnTheWayCard({ vehicle, width }: { vehicle: VehicleSummary; width: number }) {
   const t = useTheme();
-  const subtitle = [vehicleTitle(vehicle), vehicle.serial].join(" · ");
+  const subtitle = [vehicleName(vehicle), vehicleSpec(vehicle)].filter(Boolean).join(" · ");
   return (
     // router.push, not <Link asChild>: Link's Slot drops a Pressable's style function, which
     // collapsed the card to its text width.

@@ -91,6 +91,17 @@ export const useOnTheWay = () =>
     select: (list) => list.rows.filter((v) => v.status !== "DELIVERED"),
   });
 
+// The customer's vehicles by id, so other screens (Updates) can name a car without showing its
+// internal serial. One shared, cached page of up to 50 (the API maximum); every caller reuses it.
+const namesFilters: VehicleFilters = { pageSize: 50 };
+export const useVehiclesById = () =>
+  useQuery({
+    queryKey: queryKeys.vehicles(namesFilters),
+    queryFn: () => api.vehicles(namesFilters),
+    select: (list) => new Map(list.rows.map((v) => [v.id, v])),
+    staleTime: 5 * 60_000,
+  });
+
 // Alerts change often, so they are never considered fresh.
 export const useAlerts = () =>
   useQuery({ queryKey: queryKeys.alerts, queryFn: () => api.alerts(), staleTime: 0 });

@@ -10,7 +10,7 @@ import { AlertRowsSkeleton, Bone, OnTheWaySkeleton, Skeleton } from "@/component
 import { AppText, Button, raised } from "@/components/ui";
 import { useTabBarSpace } from "@/components/tab-bar";
 import { useAlerts, useHome, useOnTheWay } from "@/features/vehicles/hooks";
-import { formatDate } from "@/features/vehicles/status";
+import { formatDate, vehicleName } from "@/features/vehicles/status";
 import { greeting, initials } from "@/lib/format";
 import { radius, spacing, useTheme } from "@/theme/theme";
 
@@ -33,6 +33,13 @@ export default function HomeScreen() {
   };
 
   const latestAlerts = alerts.data?.days.flatMap((d) => d.alerts).slice(0, 3) ?? [];
+  // The API names the next departure only by id and serial; show the car's name instead (the
+  // serial is internal), from the vehicles already loaded on this screen.
+  const departureId = home.data?.nextDeparture?.vehicleId;
+  const departing = [...(onTheWay.data ?? []), ...(home.data?.recentVehicles ?? [])].find(
+    (v) => v.id === departureId,
+  );
+  const departingName = departing ? vehicleName(departing) : "your vehicle";
   const isNewCustomer = home.data && home.data.activeCount === 0 && home.data.deliveredCount === 0;
 
   return (
@@ -90,8 +97,7 @@ export default function HomeScreen() {
               {home.data.nextDeparture ? (
                 <Padded>
                   <AppText muted style={{ fontSize: 13 }}>
-                    Next departure: {home.data.nextDeparture.serial} on{" "}
-                    {formatDate(home.data.nextDeparture.etd)}
+                    Next departure: {departingName} on {formatDate(home.data.nextDeparture.etd)}
                   </AppText>
                 </Padded>
               ) : null}

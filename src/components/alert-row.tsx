@@ -2,8 +2,9 @@ import { router } from "expo-router";
 import { SymbolView, type SymbolViewProps } from "expo-symbols";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { useMarkAlertsRead } from "@/features/vehicles/hooks";
-import type { Alert, AlertEvent } from "@/lib/api/schemas";
+import { useMarkAlertsRead, useVehiclesById } from "@/features/vehicles/hooks";
+import { daysUntil, vehicleTitle } from "@/features/vehicles/status";
+import type { Alert, AlertEvent, VehicleSummary } from "@/lib/api/schemas";
 import { timeAgo } from "@/lib/format";
 import { spacing, useTheme, type Theme } from "@/theme/theme";
 
@@ -50,15 +51,62 @@ export function useOpenAlert() {
   };
 }
 
+// The app's own wording per alert type (contract §7.1-7.2 allows localising by `event`; the body
+// is never parsed). The server's texts name cars by their internal FTJ serial (FC90090); here the
+// car is named by year, make and model instead, and day counts come from the car's own dates.
+function alertCopy(
+  a: Alert,
+  vehicle: VehicleSummary | undefined,
+  now = new Date(),
+): { title: string; body: string } {
+  const car = vehicle ? `your ${vehicleTitle(vehicle)}` : "your vehicle";
+  const Car = car.charAt(0).toUpperCase() + car.slice(1);
+  switch (a.event) {
+    case "BOOKING_RECEIVED":
+      return { title: "Booking received", body: `${Car} is booked on a sailing.` };
+    case "PHOTOS_ADDED":
+      return { title: "New photos", body: `New photos of ${car} are ready to see.` };
+    case "DOCUMENTS_READY":
+      return { title: "Document ready", body: `A shipping document for ${car} is ready.` };
+    case "DEPARTURE_REMINDER": {
+      const days = vehicle?.etd ? daysUntil(vehicle.etd, now) : null;
+      const when =
+        days === null || days < 0
+          ? "soon"
+          : days === 0
+            ? "today"
+            : days === 1
+              ? "tomorrow"
+              : `in ${days} days`;
+      return { title: "Departing soon", body: `${Car} departs ${when}.` };
+    }
+    case "CHAT_MESSAGE":
+      return { title: "New message", body: "You have a new message from the team." };
+    case "LINK_REQUEST_APPROVED":
+      return { title: "Vehicle linked", body: `${Car} was added to your account.` };
+    case "LINK_REQUEST_REJECTED":
+      return {
+        title: "Vehicle request",
+        body: "We couldn't link the vehicle you asked about. Check your messages for details.",
+      };
+    default:
+      // NEW_STOCK names stock by make, model and year (no serial); unknown types: server text.
+      return { title: a.title, body: a.body };
+  }
+}
+
 export function AlertRow({ alert, onPress }: { alert: Alert; onPress: () => void }) {
   const t = useTheme();
   const icon = icons[alert.event];
   const tone = icon.tone(t);
+  const vehicles = useVehiclesById();
+  const vehicle = alert.vehicleId ? vehicles.data?.get(alert.vehicleId) : undefined;
+  const { title, body } = alertCopy(alert, vehicle);
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={`${alert.isRead ? "" : "Unread. "}${alert.title}. ${alert.body}. ${timeAgo(alert.createdAt)}`}
+      accessibilityLabel={`${alert.isRead ? "" : "Unread. "}${title}. ${body}. ${timeAgo(alert.createdAt)}`}
       style={({ pressed }) => [styles.row, { opacity: pressed ? 0.6 : 1 }]}
     >
       <View style={[styles.icon, { backgroundColor: tone.bg }]}>
@@ -68,13 +116,12 @@ export function AlertRow({ alert, onPress }: { alert: Alert; onPress: () => void
         <View style={styles.titleLine}>
           {alert.isRead ? null : <View style={[styles.unread, { backgroundColor: t.accent }]} />}
           <Text style={[styles.title, { color: t.text }]} numberOfLines={1}>
-            {alert.title}
+            {title}
           </Text>
           <Text style={[styles.time, { color: t.textMuted }]}>{timeAgo(alert.createdAt)}</Text>
         </View>
-        {/* Server text is plain text only (contract §7.1); never parsed or rendered as markup. */}
         <Text style={[styles.body, { color: t.textMuted }]} numberOfLines={2}>
-          {alert.body}
+          {body}
         </Text>
       </View>
     </Pressable>

@@ -23,12 +23,12 @@ import { spacing } from "@/theme/theme";
 export function PhotoViewer({
   photos,
   startIndex,
-  serial,
+  vehicleName,
   onClose,
 }: {
   photos: Photo[];
   startIndex: number | null;
-  serial: string;
+  vehicleName: string;
   onClose: () => void;
 }) {
   const { width, height } = useWindowDimensions();
@@ -66,7 +66,7 @@ export function PhotoViewer({
               <View
                 accessible
                 accessibilityRole="image"
-                accessibilityLabel={`Photo ${i + 1} of ${photos.length} of ${serial}`}
+                accessibilityLabel={`Photo ${i + 1} of ${photos.length} of ${vehicleName}`}
               >
                 <VehicleCover photoId={item.id} size="full" style={{ width, height: width * 0.75 }} />
               </View>

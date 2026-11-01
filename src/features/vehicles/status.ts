@@ -14,22 +14,35 @@ export const statusLabel: Record<VehicleStatus, string> = {
 // Chip colours per status, as theme token names so dark mode follows automatically.
 export function statusTone(status: VehicleStatus, t: Theme): { fg: string; bg: string } {
   switch (status) {
-    case "PENDING":
-      return { fg: t.warning, bg: t.warningSoft };
     case "BOOKING_RECEIVED":
-      return { fg: t.info, bg: t.infoSoft };
+      return { fg: t.statusBooked, bg: t.statusBookedBg };
     case "SHIPPED":
-      return { fg: t.success, bg: t.successSoft };
+      return { fg: t.statusShipped, bg: t.statusShippedBg };
     case "ARRIVED":
-      return { fg: t.violet, bg: t.violetSoft };
+      return { fg: t.statusArrived, bg: t.statusArrivedBg };
+    case "DELIVERED":
+      return { fg: t.statusDelivered, bg: t.statusDeliveredBg };
     default:
-      return { fg: t.textMuted, bg: t.canvas };
+      return { fg: t.statusPending, bg: t.statusPendingBg }; // PENDING and unknown
   }
 }
 
-// "2019 Toyota Aqua", skipping whatever is null; falls back to the serial.
-export function vehicleTitle(v: Pick<VehicleSummary, "year" | "brand" | "model" | "serial">): string {
-  return [v.year, v.brand, v.model].filter(Boolean).join(" ") || v.serial;
+// How a vehicle is named to the customer. The FTJ serial (FC90091) is an internal reference and
+// is never shown in the app's own text; make, model, year and grade describe the car instead.
+
+/** "2019 Toyota Aqua", skipping whatever is null. */
+export function vehicleTitle(v: Pick<VehicleSummary, "year" | "brand" | "model">): string {
+  return [v.year, v.brand, v.model].filter(Boolean).join(" ") || "Your vehicle";
+}
+
+/** "Toyota Aqua": make and model. */
+export function vehicleName(v: Pick<VehicleSummary, "brand" | "model">): string {
+  return [v.brand, v.model].filter(Boolean).join(" ") || "Your vehicle";
+}
+
+/** "2019 · G": year and grade, for the line under the name. */
+export function vehicleSpec(v: Pick<VehicleSummary, "year" | "grade">): string {
+  return [v.year, v.grade].filter(Boolean).join(" · ");
 }
 
 // etd/eta are midnight UTC, so format in UTC or the date shifts by a day in some time zones.

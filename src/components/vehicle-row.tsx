@@ -7,6 +7,8 @@ import {
   journeyLine,
   journeyProgress,
   journeyStage,
+  vehicleName,
+  vehicleSpec,
   vehicleTitle,
 } from "@/features/vehicles/status";
 import type { VehicleSummary } from "@/lib/api/schemas";
@@ -16,7 +18,7 @@ import { radius, spacing, useTheme } from "@/theme/theme";
 export function VehicleRow({ vehicle }: { vehicle: VehicleSummary }) {
   const t = useTheme();
   const delivered = vehicle.status === "DELIVERED";
-  const subtitle = [vehicle.year, vehicle.serial].filter(Boolean).join(" · ");
+  const subtitle = vehicleSpec(vehicle);
   // A delivered car has no journey left to show: say when it was bought instead (no amounts).
   const detail = delivered
     ? vehicle.purchaseDate
@@ -28,7 +30,7 @@ export function VehicleRow({ vehicle }: { vehicle: VehicleSummary }) {
     <Pressable
       onPress={() => router.push({ pathname: "/vehicle/[id]", params: { id: vehicle.id } })}
       accessibilityRole="button"
-      accessibilityLabel={`${vehicleTitle(vehicle)}, ${vehicle.serial}. ${detail ?? ""}`}
+      accessibilityLabel={`${vehicleTitle(vehicle)}. ${detail ?? ""}`}
       style={({ pressed }) => [
         styles.card,
         { backgroundColor: t.card, borderColor: t.border, opacity: pressed ? 0.7 : 1 },
@@ -38,7 +40,7 @@ export function VehicleRow({ vehicle }: { vehicle: VehicleSummary }) {
         <VehicleCover photoId={vehicle.coverPhotoId} style={styles.thumb} />
         <View style={{ flex: 1, gap: 3 }}>
           <Text style={[styles.title, { color: t.text }]} numberOfLines={1}>
-            {[vehicle.brand, vehicle.model, vehicle.grade].filter(Boolean).join(" ") || vehicle.serial}
+            {vehicleName(vehicle)}
           </Text>
           <Text style={{ color: t.textMuted, fontSize: 12 }}>{subtitle}</Text>
           <View style={styles.statusLine}>
