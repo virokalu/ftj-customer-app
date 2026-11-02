@@ -1,6 +1,7 @@
 import { SymbolView } from "expo-symbols";
 import { useState, type ReactNode } from "react";
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Button, PopButton } from "@/components/ui";
 import { activeStatuses } from "@/features/vehicles/hooks";
@@ -26,21 +27,28 @@ export type SortKey = (typeof sortOptions)[number]["key"];
 export type ListFilters = { status: ActiveStatus | null; brand: string | null; sort: SortKey };
 export const defaultFilters: ListFilters = { status: null, brand: null, sort: "arrival" };
 
-/** "Filter vehicles on the way" sheet. Edits a draft; nothing changes until "Show vehicles". */
+/**
+ * "Filter vehicles" sheet. Choices are a draft until "Apply"; "Clear" resets them and applies
+ * that straight away, so closing the sheet afterwards keeps the list unfiltered.
+ */
 export function FilterSheet({
   visible,
   value,
   brands,
   onApply,
+  onClear,
   onClose,
 }: {
   visible: boolean;
   value: ListFilters;
   brands: string[];
   onApply: (f: ListFilters) => void;
+  /** Applies the default filters without closing the sheet. */
+  onClear: () => void;
   onClose: () => void;
 }) {
   const t = useTheme();
+  const insets = useSafeAreaInsets();
   const [draft, setDraft] = useState(value);
 
   return (
@@ -52,21 +60,20 @@ export function FilterSheet({
       onRequestClose={onClose}
     >
       <View style={{ flex: 1, backgroundColor: t.background }}>
+        {/* Grabber: shows this is a sheet that can be pulled down to close. */}
+        <View style={[styles.grabber, { backgroundColor: t.textMuted }]} />
         <View style={[styles.header, { borderBottomColor: t.border }]}>
-          <PopButton onPress={() => setDraft(defaultFilters)} accessibilityRole="button" hitSlop={8}>
-            <Text style={{ color: t.accentText, fontSize: 16, fontWeight: "600" }}>Reset</Text>
-          </PopButton>
-          <Text style={[styles.title, { color: t.text }]}>Filter vehicles on the way</Text>
+          <Text style={[styles.title, { color: t.text }]}>Filter vehicles</Text>
           <PopButton onPress={onClose} accessibilityRole="button" accessibilityLabel="Close" hitSlop={8}>
             <SymbolView
               name={{ ios: "xmark", android: "close", web: "close" }}
               size={16}
-              tintColor={t.accentText}
+              tintColor={t.text}
             />
           </PopButton>
         </View>
 
-        <ScrollView contentContainerStyle={{ padding: spacing.md, gap: spacing.lg }}>
+        <ScrollView contentContainerStyle={{ padding: spacing.md, gap: spacing.lg, paddingBottom: 120 }}>
           <Group label="Status">
             <Chip
               label="Any"
@@ -131,8 +138,18 @@ export function FilterSheet({
           </View>
         </ScrollView>
 
-        <View style={{ padding: spacing.md, paddingBottom: spacing.xl }}>
-          <Button label="Show vehicles" onPress={() => onApply(draft)} />
+        {/* Two buttons over the bottom of the list: Clear resets (and applies) the choices, Apply shows the vehicles. */}
+        <View style={[styles.footer, { bottom: Math.max(insets.bottom, spacing.md) + spacing.sm }]}>
+          <View style={{ flex: 1 }}>
+            <Button label="Clear" variant="secondary" onPress={() => {
+                setDraft(defaultFilters);
+                onClear();
+              }}
+            />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Button label="Apply" onPress={() => onApply(draft)} />
+          </View>
         </View>
       </View>
     </Modal>
@@ -177,6 +194,7 @@ export function Chip({
 }
 
 const styles = StyleSheet.create({
+  grabber: { alignSelf: "center", width: 48, height: 5, borderRadius: 2.5, marginTop: spacing.sm, opacity: 0.4 },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -184,7 +202,7 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  title: { fontSize: 16, fontWeight: "700" },
+  title: { fontSize: 18, fontWeight: "700" },
   groupLabel: { fontSize: 12, fontWeight: "700", letterSpacing: 0.6, textTransform: "uppercase" },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
   chip: {
@@ -193,6 +211,13 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     borderWidth: StyleSheet.hairlineWidth,
     justifyContent: "center",
+  },
+  footer: {
+    position: "absolute",
+    left: spacing.md,
+    right: spacing.md,
+    flexDirection: "row",
+    gap: spacing.sm,
   },
   sortList: { borderRadius: radius.md, borderWidth: StyleSheet.hairlineWidth },
   sortRow: { flexDirection: "row", alignItems: "center", minHeight: 48, paddingHorizontal: spacing.md },

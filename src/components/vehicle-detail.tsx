@@ -10,13 +10,21 @@ import {
   View,
   useWindowDimensions,
 } from "react-native";
+import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
 
 import { JourneyIcon } from "@/components/journey-icons";
 import { PopButton, raised } from "@/components/ui";
 import { DocumentRowsSkeleton, PhotoGridSkeleton, TimelineSkeleton } from "@/components/skeleton";
 import { PortTrack, VehicleCover } from "@/components/vehicle-bits";
 import { openDocument } from "@/features/documents/open-document";
-import { formatDate, journeyLine, journeyProgress, journeyStage } from "@/features/vehicles/status";
+import {
+  formatDate,
+  journeyLine,
+  journeyProgress,
+  journeyStage,
+  statusLabel,
+  vehicleName,
+} from "@/features/vehicles/status";
 import { documentLabels, nextStep, stepDate, stepLabel } from "@/features/vehicles/timeline";
 import { ApiError } from "@/lib/api/client";
 import type { Photo, TimelineStep, VehicleDetail, VehicleDocument, VehicleStatus } from "@/lib/api/schemas";
@@ -26,56 +34,97 @@ import { radius, spacing, useTheme } from "@/theme/theme";
 
 // ---------------------------------------------------------------- gallery
 
-export const GALLERY_HEIGHT = 280;
+export const GALLERY_HEIGHT = 320;
 
-/** Swipeable photos at the top of the page, or the "Photos coming soon" state. */
-export function Gallery({ photos, onOpen }: { photos: Photo[]; onOpen: (index: number) => void }) {
-  const t = useTheme();
+// Behind the photos while they load, and the "coming soon" backdrop: dark so the white name reads.
+const GALLERY_BACKDROP = "#24262C";
+
+/**
+ * Swipeable photos at the top of the page, with the status, name and details on a dark fade at
+ * the bottom of the photo. Without photos, a dark backdrop says photos are coming.
+ */
+export function Gallery({
+  vehicle,
+  photos,
+  onOpen,
+}: {
+  vehicle: VehicleDetail;
+  photos: Photo[];
+  onOpen: (index: number) => void;
+}) {
   const { width } = useWindowDimensions();
   const [index, setIndex] = useState(0);
+  // Year, grade and chassis number: the details a customer recognises (no internal FTJ serial).
+  const details = [vehicle.year, vehicle.grade, vehicle.chassisNo ? `Chassis ${vehicle.chassisNo}` : null]
+    .filter(Boolean)
+    .join(" · ");
 
-  if (photos.length === 0) {
-    return (
-      <View style={[styles.gallery, styles.soon, { backgroundColor: t.control }]}>
-        <View style={[styles.soonIcon, { backgroundColor: t.card }]}>
+  return (
+    <View style={[styles.gallery, { backgroundColor: GALLERY_BACKDROP }]}>
+      {photos.length > 0 ? (
+        <FlatList
+          data={photos}
+          keyExtractor={(p) => p.id}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          onMomentumScrollEnd={(e) => setIndex(Math.round(e.nativeEvent.contentOffset.x / width))}
+          renderItem={({ item, index: i }) => (
+            <Pressable
+              onPress={() => onOpen(i)}
+              accessibilityRole="imagebutton"
+              accessibilityLabel={`Photo ${i + 1} of ${photos.length}. Opens full screen`}
+            >
+              <VehicleCover photoId={item.id} size="full" style={{ width, height: GALLERY_HEIGHT }} />
+            </Pressable>
+          )}
+        />
+      ) : (
+        <View style={styles.soon}>
           <SymbolView
             name={{ ios: "camera", android: "photo_camera", web: "photo_camera" }}
             size={22}
-            tintColor={t.accentText}
+            tintColor="rgba(255,255,255,0.75)"
           />
+          <Text style={styles.soonTitle}>Photos coming soon</Text>
+          <Text style={styles.soonBody}>Our yard team takes photos once the car reaches the export yard.</Text>
         </View>
-        <Text style={[styles.soonTitle, { color: t.text }]}>Photos coming soon</Text>
-        <Text style={[styles.soonBody, { color: t.textMuted }]}>
-          Our yard team takes photos once the car reaches the export yard. We&apos;ll let you know.
-        </Text>
-      </View>
-    );
-  }
+      )}
 
-  return (
-    <View style={styles.gallery}>
-      <FlatList
-        data={photos}
-        keyExtractor={(p) => p.id}
-        horizontal
-        pagingEnabled
-        showsHorizontalScrollIndicator={false}
-        onMomentumScrollEnd={(e) => setIndex(Math.round(e.nativeEvent.contentOffset.x / width))}
-        renderItem={({ item, index: i }) => (
-          <Pressable
-            onPress={() => onOpen(i)}
-            accessibilityRole="imagebutton"
-            accessibilityLabel={`Photo ${i + 1} of ${photos.length}. Opens full screen`}
-          >
-            <VehicleCover photoId={item.id} size="full" style={{ width, height: GALLERY_HEIGHT }} />
-          </Pressable>
-        )}
-      />
-      <View style={styles.count}>
-        <SymbolView name={{ ios: "photo", android: "image", web: "image" }} size={12} tintColor="#FFFFFF" />
-        <Text style={styles.countText}>
-          {index + 1}/{photos.length}
+      {/* Dark fade over the bottom of the photo so the white text reads on any photo. */}
+      <Svg style={styles.galleryFade} pointerEvents="none" preserveAspectRatio="none">
+        <Defs>
+          <LinearGradient id="galleryFade" x1="0" y1="0" x2="0" y2="1">
+            <Stop offset="0" stopColor="#000000" stopOpacity={0} />
+            <Stop offset="1" stopColor="#000000" stopOpacity={0.75} />
+          </LinearGradient>
+        </Defs>
+        <Rect x="0" y="0" width="100%" height="100%" fill="url(#galleryFade)" />
+      </Svg>
+
+      <View style={styles.galleryInfo} pointerEvents="none">
+        <View style={styles.galleryChipRow}>
+          <View style={styles.galleryChip}>
+            <View style={styles.galleryChipDot} />
+            <Text style={styles.galleryChipText}>{statusLabel[vehicle.status]}</Text>
+          </View>
+          {photos.length > 1 ? (
+            <View style={styles.count}>
+              <SymbolView name={{ ios: "photo", android: "image", web: "image" }} size={12} tintColor="#FFFFFF" />
+              <Text style={styles.countText}>
+                {index + 1}/{photos.length}
+              </Text>
+            </View>
+          ) : null}
+        </View>
+        <Text style={styles.galleryName} numberOfLines={2}>
+          {vehicleName(vehicle)}
         </Text>
+        {details ? (
+          <Text style={styles.galleryDetails} numberOfLines={1}>
+            {details}
+          </Text>
+        ) : null}
       </View>
     </View>
   );
@@ -86,11 +135,9 @@ export function Gallery({ photos, onOpen }: { photos: Photo[]; onOpen: (index: n
 export function StatusCard({
   vehicle,
   steps,
-  onDetails,
 }: {
   vehicle: VehicleDetail;
   steps: TimelineStep[] | undefined;
-  onDetails: () => void;
 }) {
   const t = useTheme();
   const next = steps ? nextStep(steps) : null;
@@ -113,14 +160,6 @@ export function StatusCard({
               {nextDate ? ` · ${nextDate.replace("Expected ", "")}` : ""}
             </Text>
           </View>
-          <PopButton
-            onPress={onDetails}
-            accessibilityRole="button"
-            accessibilityLabel="Timeline details"
-            hitSlop={8}
-          >
-            <Text style={{ color: t.accentText, fontSize: 14, fontWeight: "600" }}>Details</Text>
-          </PopButton>
         </View>
       ) : null}
     </View>
@@ -128,7 +167,7 @@ export function StatusCard({
 }
 
 // The four stages a customer follows, made from the vehicle's status. The nine detailed steps
-// stay on the Timeline tab ("Details").
+// stay on the Timeline tab.
 const stages = [
   { label: "In Japan", icon: "loading" },
   { label: "Booked", icon: "booked" },
@@ -432,7 +471,9 @@ function DocumentRow({
           {doc && type === "OTHER" ? doc.name : label.name}
         </Text>
         {ready ? (
-          <Text style={{ color: t.success, fontSize: 12 }}>Ready · added {shortDate(doc.createdAt)}</Text>
+          <Text style={{ color: t.textMuted, fontSize: 12 }}>
+            <Text style={{ color: t.text, fontWeight: "600" }}>Ready</Text> · added {shortDate(doc.createdAt)}
+          </Text>
         ) : (
           <Text style={{ color: t.textMuted, fontSize: 12 }} numberOfLines={2}>
             {pendingText}
@@ -644,14 +685,38 @@ const STAGE = 36;
 
 const styles = StyleSheet.create({
   gallery: { height: GALLERY_HEIGHT },
-  soon: { alignItems: "center", justifyContent: "center", gap: spacing.sm, paddingHorizontal: spacing.xl },
-  soonIcon: { width: 48, height: 48, borderRadius: 24, alignItems: "center", justifyContent: "center" },
-  soonTitle: { fontSize: 15, fontWeight: "700" },
-  soonBody: { fontSize: 13, lineHeight: 18, textAlign: "center" },
-  count: {
+  soon: {
     position: "absolute",
-    right: spacing.md,
-    bottom: spacing.md,
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 120,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    paddingHorizontal: spacing.xl,
+  },
+  soonTitle: { color: "#FFFFFF", fontSize: 15, fontWeight: "700" },
+  soonBody: { color: "rgba(255,255,255,0.7)", fontSize: 13, lineHeight: 18, textAlign: "center" },
+  galleryFade: { position: "absolute", left: 0, right: 0, bottom: 0, height: "60%" },
+  galleryInfo: { position: "absolute", left: spacing.md, right: spacing.md, bottom: spacing.md, gap: 6 },
+  galleryChipRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  galleryChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 11,
+    paddingVertical: 5,
+    borderRadius: 999,
+    backgroundColor: "rgba(255,255,255,0.22)",
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: "rgba(255,255,255,0.35)",
+  },
+  galleryChipDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: "#FFFFFF" },
+  galleryChipText: { color: "#FFFFFF", fontSize: 12, fontWeight: "600" },
+  galleryName: { color: "#FFFFFF", fontSize: 26, fontWeight: "700" },
+  galleryDetails: { color: "rgba(255,255,255,0.85)", fontSize: 13, fontWeight: "500" },
+  count: {
     flexDirection: "row",
     alignItems: "center",
     gap: 4,

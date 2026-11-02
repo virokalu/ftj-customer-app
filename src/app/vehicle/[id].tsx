@@ -1,13 +1,13 @@
 import { router, useLocalSearchParams } from "expo-router";
+import { BlurView } from "expo-blur";
 import { SymbolView } from "expo-symbols";
 import { useState } from "react";
-import { RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
+import { RefreshControl, ScrollView, StyleSheet, Text, View, useColorScheme } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AppText, Button, Centered, PopButton, raised } from "@/components/ui";
 import { PhotoViewer } from "@/components/photo-viewer";
 import { VehiclePageSkeleton } from "@/components/skeleton";
-import { StatusChip } from "@/components/vehicle-bits";
 import {
   Gallery,
   OverviewTab,
@@ -20,12 +20,13 @@ import {
 import { usePhotos, useTimeline, useVehicle, useVehicleDocuments } from "@/features/vehicles/hooks";
 import { vehicleTitle } from "@/features/vehicles/status";
 import { ApiError } from "@/lib/api/client";
-import { radius, spacing, useTheme } from "@/theme/theme";
+import { spacing, useTheme } from "@/theme/theme";
 
 // Vehicle page (sheet 3): gallery, status card, Overview / Timeline / Photos, and a sticky
 // "Ask about this car". Data: /vehicles/:id, /timeline, /photos, /documents?vehicleId=.
 export default function VehicleScreen() {
   const t = useTheme();
+  const dark = useColorScheme() === "dark";
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
   const vehicle = useVehicle(id);
@@ -105,8 +106,6 @@ export default function VehicleScreen() {
   }
 
   const v = vehicle.data;
-  // Grade and chassis number: the details a customer recognises (no internal FTJ serial).
-  const subtitle = [v.grade, v.chassisNo ? `Chassis ${v.chassisNo}` : null].filter(Boolean).join(" · ");
 
   return (
     <View style={{ flex: 1, backgroundColor: t.canvas }}>
@@ -115,21 +114,11 @@ export default function VehicleScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={t.accent} />}
       >
         <View style={{ paddingTop: insets.top }}>
-          <Gallery photos={photos.data ?? []} onOpen={setViewerIndex} />
+          <Gallery vehicle={v} photos={photos.data ?? []} onOpen={setViewerIndex} />
         </View>
 
         <View style={{ padding: spacing.md, gap: spacing.md }}>
-          <View style={{ gap: 4 }}>
-            <View style={styles.titleRow}>
-              <Text style={[styles.title, { color: t.text }]} numberOfLines={2}>
-                {vehicleTitle(v)}
-              </Text>
-              <StatusChip status={v.status} />
-            </View>
-            <Text style={{ color: t.textMuted, fontSize: 13 }}>{subtitle}</Text>
-          </View>
-
-          <StatusCard vehicle={v} steps={timeline.data} onDetails={() => setTab("timeline")} />
+          <StatusCard vehicle={v} steps={timeline.data} />
 
           <Segmented value={tab} onChange={setTab} />
 
@@ -145,30 +134,34 @@ export default function VehicleScreen() {
 
       {back}
 
-      <View
-        style={[
-          styles.bottomBar,
-          {
-            paddingBottom: insets.bottom + spacing.sm,
-            backgroundColor: t.card,
-            borderTopColor: t.border,
-          },
-        ]}
-      >
+      {/* Floating glass button over the page, the same glass as the floating tab bar: ultra-thin
+          material at a light intensity, so the page shows through. Crimson label, like the
+          selected tab. */}
+      <View style={[styles.askFloat, { bottom: insets.bottom + spacing.sm }]} pointerEvents="box-none">
+        <View
+          style={[styles.askGlass, { borderColor: dark ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.35)" }]}
+          pointerEvents="none"
+        >
+          <BlurView
+            intensity={dark ? 22 : 25}
+            tint={dark ? "systemUltraThinMaterialDark" : "systemUltraThinMaterialLight"}
+            style={StyleSheet.absoluteFill}
+          />
+        </View>
         {/* Chat is not built yet: this opens Messages. Later it opens (or starts) the conversation
             for this vehicle (guide §12). No phone button: the API has no agent phone number. */}
         <PopButton
           contentStyle={styles.askContent}
           onPress={() => router.push("/messages")}
           accessibilityRole="button"
-          style={[styles.ask, { backgroundColor: t.accent }]}
+          style={styles.ask}
         >
           <SymbolView
             name={{ ios: "bubble.left", android: "chat_bubble", web: "chat_bubble" }}
             size={16}
-            tintColor={t.onAccent}
+            tintColor={t.accentText}
           />
-          <Text style={{ color: t.onAccent, fontSize: 16, fontWeight: "700" }}>Ask about this car</Text>
+          <Text style={{ color: t.accentText, fontSize: 16, fontWeight: "700" }}>Ask about this car</Text>
         </PopButton>
       </View>
 
@@ -193,22 +186,30 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  titleRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: spacing.sm },
-  title: { flex: 1, fontSize: 24, fontWeight: "700" },
-  bottomBar: {
+  askFloat: {
     position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 0,
-    paddingHorizontal: spacing.md,
-    paddingTop: spacing.sm,
-    borderTopWidth: StyleSheet.hairlineWidth,
+    left: spacing.md,
+    right: spacing.md,
+    shadowColor: "#000000",
+    shadowOpacity: 0.06,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 8 },
   },
   ask: {
-    minHeight: 50,
-    borderRadius: radius.md,
+    minHeight: 54,
+    borderRadius: 999,
     alignItems: "center",
     justifyContent: "center",
+  },
+  askGlass: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    borderRadius: 999,
+    overflow: "hidden",
+    borderWidth: StyleSheet.hairlineWidth,
   },
   askContent: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
 });

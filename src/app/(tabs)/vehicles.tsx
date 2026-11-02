@@ -297,6 +297,7 @@ export default function VehiclesScreen() {
           setFilters(f);
           setSheetOpen(false);
         }}
+        onClear={() => setFilters(defaultFilters)}
         onClose={() => setSheetOpen(false)}
       />
     </SafeAreaView>

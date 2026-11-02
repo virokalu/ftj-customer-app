@@ -170,13 +170,9 @@ export function VehiclePageSkeleton({ topInset }: { topInset: number }) {
   return (
     <Skeleton>
       <View style={{ paddingTop: topInset }}>
-        <Bone height={280} round={0} />
+        <Bone height={320} round={0} />
       </View>
       <View style={{ padding: spacing.md, gap: spacing.md }}>
-        <View style={{ gap: 8 }}>
-          <Bone width="65%" height={22} />
-          <Bone width="45%" />
-        </View>
         <BoneCard style={{ gap: spacing.sm }}>
           <Bone width="30%" height={10} />
           <Bone width="55%" height={20} />
