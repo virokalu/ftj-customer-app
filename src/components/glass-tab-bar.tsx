@@ -41,6 +41,9 @@ export function GlassTabBar({ state, descriptors, emitter, navigateToTab }: TabB
           tint={dark ? "systemUltraThinMaterialDark" : "systemUltraThinMaterialLight"}
           style={StyleSheet.absoluteFill}
         />
+        {/* Light mode: a white wash over the blur, so busy photos behind the bar stay soft and
+            the icons read clearly. Dark mode's dark material already does this. */}
+        {dark ? null : <View style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(255,255,255,0.6)" }]} />}
       </View>
 
       <View style={styles.row} accessibilityRole="tablist">
@@ -103,7 +106,8 @@ function TabButton({
     opacity: lift.value,
     transform: [{ translateY: 5 * (1 - lift.value) }],
   }));
-  const color = focused ? t.accentText : t.textMuted;
+  // Unselected icons use the main text colour (not the muted grey) so they stand out on the glass.
+  const color = focused ? t.accentText : t.text;
 
   return (
     <Pressable
