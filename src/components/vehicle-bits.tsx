@@ -95,33 +95,58 @@ export function PortTrack({
   to,
   progress,
   stage,
+  stacked,
 }: {
   from: string | null;
   to: string | null;
   progress: number;
   stage: JourneyStage;
+  /**
+   * The line runs the full width with the port names under its ends, so it starts and ends at
+   * the same place on every card in a list, however long the names are (Boarding pass).
+   */
+  stacked?: boolean;
 }) {
   const t = useTheme();
   const pct = `${Math.round(progress * 100)}%` as const;
-  return (
-    <View
-      style={styles.track}
-      accessible
-      accessibilityLabel={`From ${from ?? "Japan"} to ${to ?? "destination"}. ${stageLabel[stage]}`}
-    >
-      <Text style={[styles.port, { color: t.text }]} numberOfLines={1}>
-        {from ?? "Japan"}
-      </Text>
-      {/* Inset by half the marker so it stays inside the track at 0% and 100%. */}
-      <View style={styles.line}>
-        <View style={[styles.rail, { backgroundColor: t.border }]} />
-        <View style={[styles.fill, { width: pct, backgroundColor: t.accent }]} />
-        <View style={[styles.ship, { left: pct, backgroundColor: t.accent, borderColor: t.card }]}>
-          <JourneyIcon stage={stage} size={14} color={t.onAccent} cutout={t.accent} />
+  const fromName = from ?? "Japan";
+  const toName = to ?? "Destination";
+  // Inset by half the marker so it stays inside the track at 0% and 100%.
+  const line = (
+    <View style={styles.line}>
+      <View style={[styles.rail, { backgroundColor: t.border }]} />
+      <View style={[styles.fill, { width: pct, backgroundColor: t.accent }]} />
+      <View style={[styles.ship, { left: pct, backgroundColor: t.accent, borderColor: t.card }]}>
+        <JourneyIcon stage={stage} size={14} color={t.onAccent} cutout={t.accent} />
+      </View>
+    </View>
+  );
+  const label = `From ${fromName} to ${toName}. ${stageLabel[stage]}`;
+
+  if (stacked) {
+    return (
+      <View style={{ gap: 4 }} accessible accessibilityLabel={label}>
+        <View style={styles.stackedLine}>{line}</View>
+        <View style={styles.stackedPorts}>
+          <Text style={[styles.stackedPort, { color: t.text }]} numberOfLines={1}>
+            {fromName}
+          </Text>
+          <Text style={[styles.stackedPort, { color: t.text, textAlign: "right" }]} numberOfLines={1}>
+            {toName}
+          </Text>
         </View>
       </View>
+    );
+  }
+
+  return (
+    <View style={styles.track} accessible accessibilityLabel={label}>
+      <Text style={[styles.port, { color: t.text }]} numberOfLines={1}>
+        {fromName}
+      </Text>
+      {line}
       <Text style={[styles.port, { color: t.text, textAlign: "right" }]} numberOfLines={1}>
-        {to ?? "Destination"}
+        {toName}
       </Text>
     </View>
   );
@@ -145,6 +170,9 @@ const styles = StyleSheet.create({
   track: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
   port: { fontSize: 12, fontWeight: "700", maxWidth: 84 },
   line: { flex: 1, height: SHIP, justifyContent: "center", marginHorizontal: SHIP / 2 },
+  stackedLine: { flexDirection: "row" },
+  stackedPorts: { flexDirection: "row", justifyContent: "space-between", gap: spacing.md },
+  stackedPort: { flexShrink: 1, fontSize: 12, fontWeight: "700" },
   rail: { position: "absolute", left: 0, right: 0, height: 2, borderRadius: 1 },
   fill: { position: "absolute", left: 0, height: 2, borderRadius: 1 },
   ship: {

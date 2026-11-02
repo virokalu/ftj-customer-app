@@ -11,6 +11,7 @@ import {
   useWindowDimensions,
 } from "react-native";
 
+import { JourneyIcon } from "@/components/journey-icons";
 import { PopButton, raised } from "@/components/ui";
 import { DocumentRowsSkeleton, PhotoGridSkeleton, TimelineSkeleton } from "@/components/skeleton";
 import { PortTrack, VehicleCover } from "@/components/vehicle-bits";
@@ -18,7 +19,7 @@ import { openDocument } from "@/features/documents/open-document";
 import { formatDate, journeyLine, journeyProgress, journeyStage } from "@/features/vehicles/status";
 import { documentLabels, nextStep, stepDate, stepLabel } from "@/features/vehicles/timeline";
 import { ApiError } from "@/lib/api/client";
-import type { Photo, TimelineStep, VehicleDetail, VehicleDocument } from "@/lib/api/schemas";
+import type { Photo, TimelineStep, VehicleDetail, VehicleDocument, VehicleStatus } from "@/lib/api/schemas";
 import { radius, spacing, useTheme } from "@/theme/theme";
 
 // Building blocks of the vehicle page (sheet 3). The page itself wires data and state.
@@ -94,25 +95,12 @@ export function StatusCard({
   const t = useTheme();
   const next = steps ? nextStep(steps) : null;
   const nextDate = next ? stepDate(next, vehicle) : null;
-  const done = steps?.filter((s) => s.completed).length ?? 0;
 
   return (
     <View style={[styles.panel, raised, { backgroundColor: t.card, borderColor: t.border }]}>
       <Text style={[styles.caption, { color: t.textMuted }]}>Current status</Text>
       <Text style={[styles.statusLine, { color: t.text }]}>{journeyLine(vehicle)}</Text>
-      {steps ? (
-        // One segment per timeline step. Filled = recorded, wherever it sits (steps can complete
-        // out of order), so this is a count, not a position.
-        <View
-          style={styles.segments}
-          accessible
-          accessibilityLabel={`${done} of ${steps.length} steps completed`}
-        >
-          {steps.map((s, i) => (
-            <View key={i} style={[styles.segment, { backgroundColor: s.completed ? t.accent : t.border }]} />
-          ))}
-        </View>
-      ) : null}
+      <StageTrack status={vehicle.status} />
       {next ? (
         <View style={[styles.nextRow, { borderTopColor: t.border }]}>
           <View style={[styles.iconDot, { backgroundColor: t.iconTile }]}>
@@ -135,6 +123,94 @@ export function StatusCard({
           </PopButton>
         </View>
       ) : null}
+    </View>
+  );
+}
+
+// The four stages a customer follows, made from the vehicle's status. The nine detailed steps
+// stay on the Timeline tab ("Details").
+const stages = [
+  { label: "In Japan", icon: "loading" },
+  { label: "Booked", icon: "booked" },
+  { label: "At sea", icon: "sailing" },
+  { label: "Arrived", icon: "arrived" },
+] as const;
+
+/** Index of the current stage; every stage before it is done. 4 = all done (delivered). */
+function currentStage(status: VehicleStatus): number {
+  switch (status) {
+    case "BOOKING_RECEIVED":
+      return 1;
+    case "SHIPPED":
+      return 2;
+    case "ARRIVED":
+      return 3;
+    case "DELIVERED":
+      return 4;
+    default:
+      return 0; // PENDING (and unknown): still in Japan
+  }
+}
+
+/** In Japan → Booked → At sea → Arrived: done stages solid crimson, the current one ringed. */
+function StageTrack({ status }: { status: VehicleStatus }) {
+  const t = useTheme();
+  const current = currentStage(status);
+  const stage = stages[current];
+  const label = stage
+    ? `Stage ${current + 1} of ${stages.length}: ${stage.label}`
+    : "Delivered. All stages done";
+  return (
+    <View style={styles.stages} accessible accessibilityLabel={label}>
+      {/* Connectors run behind the circles, from one stage's centre to the next. */}
+      {stages.slice(1).map((_, i) => (
+        <View
+          key={i}
+          style={[
+            styles.connector,
+            {
+              left: `${((i + 0.5) / stages.length) * 100}%`,
+              width: `${100 / stages.length}%`,
+              backgroundColor: i < current ? t.accent : t.border,
+            },
+          ]}
+        />
+      ))}
+      {stages.map((s, i) => {
+        const done = i < current;
+        const now = i === current;
+        const fill = done ? t.accent : now ? t.accentSoft : t.iconTile;
+        const ink = done ? t.onAccent : now ? t.accentText : t.textMuted;
+        return (
+          <View key={s.label} style={styles.stage}>
+            <View
+              style={[
+                styles.stageCircle,
+                { backgroundColor: fill, borderColor: now ? t.accent : fill },
+              ]}
+            >
+              {s.icon === "booked" ? (
+                <SymbolView
+                  name={{ ios: "calendar", android: "event", web: "event" }}
+                  size={15}
+                  tintColor={ink}
+                />
+              ) : (
+                <JourneyIcon stage={s.icon} size={16} color={ink} cutout={fill} />
+              )}
+            </View>
+            <Text
+              style={[
+                styles.stageLabel,
+                { color: now ? t.accentText : done ? t.text : t.textMuted, fontWeight: now ? "700" : "600" },
+              ]}
+              numberOfLines={1}
+            >
+              {s.label}
+            </Text>
+          </View>
+        );
+      })}
     </View>
   );
 }
@@ -564,6 +640,8 @@ function shortDate(iso: string): string {
 
 const NODE = 20;
 
+const STAGE = 36;
+
 const styles = StyleSheet.create({
   gallery: { height: GALLERY_HEIGHT },
   soon: { alignItems: "center", justifyContent: "center", gap: spacing.sm, paddingHorizontal: spacing.xl },
@@ -587,8 +665,18 @@ const styles = StyleSheet.create({
   list: { paddingVertical: 0 },
   caption: { fontSize: 12 },
   statusLine: { fontSize: 22, fontWeight: "700", marginTop: 2 },
-  segments: { flexDirection: "row", gap: 4, marginTop: spacing.sm },
-  segment: { flex: 1, height: 4, borderRadius: 2 },
+  stages: { flexDirection: "row", marginTop: spacing.md },
+  stage: { flex: 1, alignItems: "center", gap: 6 },
+  stageCircle: {
+    width: STAGE,
+    height: STAGE,
+    borderRadius: STAGE / 2,
+    borderWidth: 2,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  stageLabel: { fontSize: 12 },
+  connector: { position: "absolute", top: STAGE / 2 - 1, height: 2 },
   nextRow: {
     flexDirection: "row",
     alignItems: "center",

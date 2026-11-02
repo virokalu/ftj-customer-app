@@ -84,6 +84,7 @@ export function BoardingPassCard({ vehicle }: { vehicle: VehicleSummary }) {
           to={vehicle.portOfDischarge ?? vehicle.destination}
           progress={delivered ? 1 : journeyProgress(vehicle)}
           stage={journeyStage(vehicle)}
+          stacked
         />
       </View>
     </Pressable>

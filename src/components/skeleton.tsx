@@ -180,9 +180,12 @@ export function VehiclePageSkeleton({ topInset }: { topInset: number }) {
         <BoneCard style={{ gap: spacing.sm }}>
           <Bone width="30%" height={10} />
           <Bone width="55%" height={20} />
-          <View style={{ flexDirection: "row", gap: 4, marginTop: 4 }}>
-            {Array.from({ length: 9 }, (_, i) => (
-              <Bone key={i} width={undefined} height={4} round={2} style={{ flex: 1 }} />
+          <View style={{ flexDirection: "row", marginTop: spacing.sm }}>
+            {Array.from({ length: 4 }, (_, i) => (
+              <View key={i} style={{ flex: 1, alignItems: "center", gap: 6 }}>
+                <Bone width={36} height={36} round={18} />
+                <Bone width={44} height={10} />
+              </View>
             ))}
           </View>
         </BoneCard>
