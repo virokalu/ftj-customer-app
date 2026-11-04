@@ -21,6 +21,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { GlassLayer } from "@/components/glass";
 import { radius, spacing, useTheme } from "@/theme/theme";
 
 export function Screen({ children }: { children: ReactNode }) {
@@ -134,7 +135,8 @@ export function Button({
   onPress: () => void;
   loading?: boolean;
   disabled?: boolean;
-  variant?: "primary" | "secondary" | "danger";
+  /** `glass`: Liquid Glass behind a plain label, for buttons floating over content. */
+  variant?: "primary" | "secondary" | "danger" | "glass";
   /** A light haptic "click" on press, like native iOS buttons (Welcome, Sign in). */
   haptic?: boolean;
   /**
@@ -146,7 +148,8 @@ export function Button({
   const t = useTheme();
   const primary = variant === "primary";
   const danger = variant === "danger";
-  const fill = primary ? t.accent : danger ? t.danger : t.card;
+  const glass = variant === "glass";
+  const fill = primary ? t.accent : danger ? t.danger : glass ? "transparent" : t.card;
   const label = primary ? t.onAccent : danger ? t.onDanger : t.text;
 
   const labelPop = usePop();
@@ -167,12 +170,14 @@ export function Button({
         styles.button,
         {
           backgroundColor: fill,
-          borderColor: primary || danger ? fill : t.border,
+          borderColor: primary || danger || glass ? fill : t.border,
           // Pop buttons never dim on press: the label pop is their feedback.
           opacity: disabled ? 0.45 : (pressed && !pop) || loading ? 0.7 : 1,
         },
       ]}
     >
+      {/* Behind the label and outside its pop, so only the text scales. */}
+      {glass ? <GlassLayer radius={radius.md} /> : null}
       {loading ? (
         <ActivityIndicator color={label} />
       ) : (

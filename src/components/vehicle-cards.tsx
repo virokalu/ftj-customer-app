@@ -93,13 +93,11 @@ export function BoardingPassCard({ vehicle }: { vehicle: VehicleSummary }) {
 
 /**
  * Two per row, "Poster tile": the photo fills the card, a dark fade at the bottom carries the name
- * and details in white, the status sits top-left, and a rounded crimson progress bar under the
- * journey text shows how far along the journey the car is.
+ * and details in white, and the status sits top-left.
  */
 export function PosterTile({ vehicle, width }: { vehicle: VehicleSummary; width: number }) {
   const t = useTheme();
   const height = Math.round(width * 1.3);
-  const progress = vehicle.status === "DELIVERED" ? 1 : journeyProgress(vehicle);
   const stub = stubText(vehicle);
   return (
     <Pressable
@@ -139,14 +137,6 @@ export function PosterTile({ vehicle, width }: { vehicle: VehicleSummary; width:
               {stub}
             </Text>
           ) : null}
-          <View style={styles.posterTrack}>
-            <View
-              style={[
-                styles.posterFill,
-                { width: `${Math.round(progress * 100)}%`, backgroundColor: t.accent },
-              ]}
-            />
-          </View>
         </View>
       </View>
     </Pressable>
@@ -185,12 +175,4 @@ const styles = StyleSheet.create({
   },
   posterName: { color: "#FFFFFF", fontSize: 15, fontWeight: "700" },
   posterSub: { color: "rgba(255,255,255,0.85)", fontSize: 11.5, fontWeight: "500" },
-  posterTrack: {
-    height: 5,
-    borderRadius: 2.5,
-    marginTop: spacing.xs + 2,
-    overflow: "hidden",
-    backgroundColor: "rgba(255,255,255,0.28)",
-  },
-  posterFill: { height: 5, borderRadius: 2.5 },
 });

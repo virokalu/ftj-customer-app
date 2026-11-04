@@ -10,6 +10,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 
+import { GlassLayer } from "@/components/glass";
 import { TAB_BAR_HEIGHT, TAB_BAR_RADIUS, useTabBarBottom } from "@/components/tab-bar";
 import { useTheme } from "@/theme/theme";
 
@@ -18,33 +19,38 @@ type TabBarProps = Parameters<NonNullable<ComponentProps<typeof Tabs>["tabBar"]>
 const RISE = 8; // how far the selected icon moves up to make room for its label
 
 /**
- * Floating glass tab bar with "label reveal" switching (chosen in the tab-bar lab): a frosted
+ * Floating glass tab bar (Liquid Glass on iOS 26+) with "label reveal" switching (chosen in the tab-bar lab): a frosted
  * bar above the home indicator showing icons only; the selected tab's icon moves up, turns solid
  * crimson, and its name slides in underneath. The others stay centred with duotone icons.
  * Smooth timed movement, no bounce; instant under Reduce Motion. Badges (the Updates count) come
  * from each screen's `tabBarBadge` option and move with the icon.
  */
 export function GlassTabBar({ state, descriptors, emitter, navigateToTab }: TabBarProps) {
+  const t = useTheme();
   const dark = useColorScheme() === "dark";
   const bottom = useTabBarBottom();
 
   return (
     // Outer view: position and shadow; the glass is clipped to the rounded shape in its own layer.
     <View style={[styles.bar, { bottom }]} pointerEvents="box-none">
-      <View
-        style={[styles.glass, { borderColor: dark ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.35)" }]}
-        pointerEvents="none"
-      >
-        <BlurView
-          // Ultra-thin material at a light intensity: more of the screen shows through the bar.
-          intensity={dark ? 22 : 25}
-          tint={dark ? "systemUltraThinMaterialDark" : "systemUltraThinMaterialLight"}
-          style={StyleSheet.absoluteFill}
-        />
-        {/* Light mode: a white wash over the blur, so busy photos behind the bar stay soft and
-            the icons read clearly. Dark mode's dark material already does this. */}
-        {dark ? null : <View style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(255,255,255,0.6)" }]} />}
-      </View>
+      {/* iOS 26+: Liquid Glass. Older iOS and Android: the ultra-thin blur, with a white wash in
+          light mode so busy photos behind the bar stay soft and the icons read clearly. */}
+      <GlassLayer
+        radius={TAB_BAR_RADIUS}
+        tint={`${t.canvas}8C`}
+        fallback={
+          <View
+            style={[styles.glass, { borderColor: dark ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.35)" }]}
+          >
+            <BlurView
+              intensity={dark ? 22 : 25}
+              tint={dark ? "systemUltraThinMaterialDark" : "systemUltraThinMaterialLight"}
+              style={StyleSheet.absoluteFill}
+            />
+            {dark ? null : <View style={[StyleSheet.absoluteFill, { backgroundColor: "rgba(255,255,255,0.6)" }]} />}
+          </View>
+        }
+      />
 
       <View style={styles.row} accessibilityRole="tablist">
         {state.routes.map((route, index) => {

@@ -1,10 +1,10 @@
 import { router, useLocalSearchParams } from "expo-router";
-import { BlurView } from "expo-blur";
 import { SymbolView } from "expo-symbols";
 import { useState } from "react";
-import { RefreshControl, ScrollView, StyleSheet, Text, View, useColorScheme } from "react-native";
+import { RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { GlassLayer } from "@/components/glass";
 import { AppText, Button, Centered, PopButton, raised } from "@/components/ui";
 import { PhotoViewer } from "@/components/photo-viewer";
 import { VehiclePageSkeleton } from "@/components/skeleton";
@@ -26,7 +26,6 @@ import { spacing, useTheme } from "@/theme/theme";
 // "Ask about this car". Data: /vehicles/:id, /timeline, /photos, /documents?vehicleId=.
 export default function VehicleScreen() {
   const t = useTheme();
-  const dark = useColorScheme() === "dark";
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id: string }>();
   const vehicle = useVehicle(id);
@@ -45,24 +44,27 @@ export default function VehicleScreen() {
     void documents.refetch();
   };
 
+  // Glass circle over the photo; the glass sits behind the button so only the chevron pops.
   const back = (
-    <PopButton
-      onPress={() => (router.canGoBack() ? router.back() : router.replace("/"))}
-      accessibilityRole="button"
-      accessibilityLabel="Back"
-      hitSlop={8}
-      style={[
-        styles.back,
-        raised,
-        { top: insets.top + spacing.sm, backgroundColor: t.card, borderColor: t.border },
-      ]}
-    >
-      <SymbolView
-        name={{ ios: "chevron.left", android: "arrow_back", web: "arrow_back" }}
-        size={16}
-        tintColor={t.text}
+    <View style={[styles.back, { top: insets.top + spacing.sm }]}>
+      <GlassLayer
+        radius={18}
+        fallback={<View style={[styles.backFallback, raised, { backgroundColor: t.card, borderColor: t.border }]} />}
       />
-    </PopButton>
+      <PopButton
+        onPress={() => (router.canGoBack() ? router.back() : router.replace("/"))}
+        accessibilityRole="button"
+        accessibilityLabel="Back"
+        hitSlop={8}
+        style={styles.backButton}
+      >
+        <SymbolView
+          name={{ ios: "chevron.left", android: "arrow_back", web: "arrow_back" }}
+          size={16}
+          tintColor={t.text}
+        />
+      </PopButton>
+    </View>
   );
 
   if (vehicle.isPending) {
@@ -134,20 +136,10 @@ export default function VehicleScreen() {
 
       {back}
 
-      {/* Floating glass button over the page, the same glass as the floating tab bar: ultra-thin
-          material at a light intensity, so the page shows through. Crimson label, like the
-          selected tab. */}
+      {/* Floating glass button over the page, the same glass as the floating tab bar (Liquid
+          Glass on iOS 26+). Crimson label, like the selected tab. */}
       <View style={[styles.askFloat, { bottom: insets.bottom + spacing.sm }]} pointerEvents="box-none">
-        <View
-          style={[styles.askGlass, { borderColor: dark ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.35)" }]}
-          pointerEvents="none"
-        >
-          <BlurView
-            intensity={dark ? 22 : 25}
-            tint={dark ? "systemUltraThinMaterialDark" : "systemUltraThinMaterialLight"}
-            style={StyleSheet.absoluteFill}
-          />
-        </View>
+        <GlassLayer radius={999} tint={`${t.canvas}8C`} />
         {/* Chat is not built yet: this opens Messages. Later it opens (or starts) the conversation
             for this vehicle (guide §12). No phone button: the API has no agent phone number. */}
         <PopButton
@@ -176,16 +168,9 @@ export default function VehicleScreen() {
 }
 
 const styles = StyleSheet.create({
-  back: {
-    position: "absolute",
-    left: spacing.md,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    borderWidth: StyleSheet.hairlineWidth,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+  back: { position: "absolute", left: spacing.md, width: 36, height: 36 },
+  backFallback: { flex: 1, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth },
+  backButton: { flex: 1, alignItems: "center", justifyContent: "center" },
   askFloat: {
     position: "absolute",
     left: spacing.md,
@@ -200,16 +185,6 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     alignItems: "center",
     justifyContent: "center",
-  },
-  askGlass: {
-    position: "absolute",
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
-    borderRadius: 999,
-    overflow: "hidden",
-    borderWidth: StyleSheet.hairlineWidth,
   },
   askContent: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
 });

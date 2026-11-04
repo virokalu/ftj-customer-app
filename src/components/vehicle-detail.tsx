@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
 
+import { GlassLayer } from "@/components/glass";
 import { JourneyIcon } from "@/components/journey-icons";
 import { PopButton, raised } from "@/components/ui";
 import { DocumentRowsSkeleton, PhotoGridSkeleton, TimelineSkeleton } from "@/components/skeleton";
@@ -105,11 +106,23 @@ export function Gallery({
       <View style={styles.galleryInfo} pointerEvents="none">
         <View style={styles.galleryChipRow}>
           <View style={styles.galleryChip}>
+            <GlassLayer
+              radius={999}
+              variant="clear"
+              scheme="dark"
+              fallback={<View style={[StyleSheet.absoluteFill, styles.galleryChipFallback]} />}
+            />
             <View style={styles.galleryChipDot} />
             <Text style={styles.galleryChipText}>{statusLabel[vehicle.status]}</Text>
           </View>
           {photos.length > 1 ? (
             <View style={styles.count}>
+              <GlassLayer
+                radius={999}
+                variant="clear"
+                scheme="dark"
+                fallback={<View style={[StyleSheet.absoluteFill, styles.countFallback]} />}
+              />
               <SymbolView name={{ ios: "photo", android: "image", web: "image" }} size={12} tintColor="#FFFFFF" />
               <Text style={styles.countText}>
                 {index + 1}/{photos.length}
@@ -708,6 +721,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 11,
     paddingVertical: 5,
     borderRadius: 999,
+  },
+  // Photo chips without Liquid Glass: the frosted white and dark pills used before.
+  galleryChipFallback: {
+    borderRadius: 999,
     backgroundColor: "rgba(255,255,255,0.22)",
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: "rgba(255,255,255,0.35)",
@@ -723,8 +740,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.sm,
     paddingVertical: 3,
     borderRadius: 999,
-    backgroundColor: "rgba(0,0,0,0.55)",
   },
+  countFallback: { borderRadius: 999, backgroundColor: "rgba(0,0,0,0.55)" },
   countText: { color: "#FFFFFF", fontSize: 12, fontWeight: "600" },
   panel: { borderRadius: radius.lg, borderWidth: StyleSheet.hairlineWidth, padding: spacing.md },
   list: { paddingVertical: 0 },

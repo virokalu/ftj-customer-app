@@ -141,7 +141,7 @@ export function FilterSheet({
         {/* Two buttons over the bottom of the list: Clear resets (and applies) the choices, Apply shows the vehicles. */}
         <View style={[styles.footer, { bottom: Math.max(insets.bottom, spacing.md) + spacing.sm }]}>
           <View style={{ flex: 1 }}>
-            <Button label="Clear" variant="secondary" onPress={() => {
+            <Button label="Clear" variant="glass" onPress={() => {
                 setDraft(defaultFilters);
                 onClear();
               }}
