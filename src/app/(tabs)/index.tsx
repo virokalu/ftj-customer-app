@@ -7,6 +7,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { AlertRow, useOpenAlert } from "@/components/alert-row";
 import { OnTheWayCarousel } from "@/components/on-the-way";
 import { AlertRowsSkeleton, Bone, OnTheWaySkeleton, Skeleton } from "@/components/skeleton";
+import { GlassLayer, liquidGlass } from "@/components/glass";
 import { AppText, Button, PopButton, raised } from "@/components/ui";
 import { useTabBarSpace } from "@/components/tab-bar";
 import { useAlerts, useHome, useOnTheWay } from "@/features/vehicles/hooks";
@@ -255,7 +256,15 @@ function Shortcuts() {
           accessibilityLabel={s.label}
           style={styles.shortcut}
         >
-          <View style={[styles.shortcutIcon, raised, { backgroundColor: t.card, borderColor: t.border }]}>
+          {/* Glass tile on iOS 26+ (the tile pops with its icon); the solid card elsewhere. */}
+          <View
+            style={[
+              styles.shortcutIcon,
+              liquidGlass ? null : raised,
+              { backgroundColor: liquidGlass ? "transparent" : t.card, borderColor: t.border },
+            ]}
+          >
+            {liquidGlass ? <GlassLayer radius={14} /> : null}
             <SymbolView name={s.icon} size={20} tintColor={t.accentText} />
           </View>
           <Text style={{ color: t.text, fontSize: 12, fontWeight: "500" }} numberOfLines={1}>

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { StyleSheet, Text, View, type StyleProp, type ViewStyle } from "react-native";
 
 import { statusLabel, statusTone, type JourneyStage } from "@/features/vehicles/status";
+import { GlassLayer, liquidGlass } from "@/components/glass";
 import { JourneyIcon } from "@/components/journey-icons";
 import { freshAccessToken } from "@/lib/api/client";
 import type { VehicleStatus } from "@/lib/api/schemas";
@@ -70,13 +71,29 @@ export function VehicleCover({
   );
 }
 
-export function StatusChip({ status }: { status: VehicleStatus }) {
+/**
+ * The status pill. Liquid Glass on iOS 26+: `onPhoto` is the dark glass with white text used
+ * on the vehicle page photo; on a card the glass is tinted with the status colour. Elsewhere the
+ * solid status colours.
+ */
+// Dark glass with a dark tint, so the white text stays readable even over bright photos.
+export const PHOTO_GLASS_TINT = "rgba(0,0,0,0.35)";
+
+export function StatusChip({ status, onPhoto }: { status: VehicleStatus; onPhoto?: boolean }) {
   const t = useTheme();
   const tone = statusTone(status, t);
+  const fg = onPhoto && liquidGlass ? "#FFFFFF" : tone.fg;
   return (
-    <View style={[styles.chip, { backgroundColor: tone.bg }]}>
-      <View style={[styles.chipDot, { backgroundColor: tone.fg }]} />
-      <Text style={[styles.chipText, { color: tone.fg }]}>{statusLabel[status]}</Text>
+    <View style={[styles.chip, { backgroundColor: liquidGlass ? "transparent" : tone.bg }]}>
+      {liquidGlass ? (
+        onPhoto ? (
+          <GlassLayer radius={999} scheme="dark" tint={PHOTO_GLASS_TINT} />
+        ) : (
+          <GlassLayer radius={999} tint={tone.bg} />
+        )
+      ) : null}
+      <View style={[styles.chipDot, { backgroundColor: fg }]} />
+      <Text style={[styles.chipText, { color: fg }]}>{statusLabel[status]}</Text>
     </View>
   );
 }

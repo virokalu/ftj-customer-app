@@ -12,11 +12,12 @@ import {
 } from "react-native";
 import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
 
-import { GlassLayer, liquidGlass } from "@/components/glass";
+import { GlassLayer } from "@/components/glass";
+import { SegmentTrack } from "@/components/segment-track";
 import { JourneyIcon } from "@/components/journey-icons";
 import { PopButton, raised } from "@/components/ui";
 import { DocumentRowsSkeleton, PhotoGridSkeleton, TimelineSkeleton } from "@/components/skeleton";
-import { PortTrack, VehicleCover } from "@/components/vehicle-bits";
+import { PHOTO_GLASS_TINT, PortTrack, VehicleCover } from "@/components/vehicle-bits";
 import { openDocument } from "@/features/documents/open-document";
 import {
   formatDate,
@@ -108,8 +109,8 @@ export function Gallery({
           <View style={styles.galleryChip}>
             <GlassLayer
               radius={999}
-              variant="clear"
               scheme="dark"
+              tint={PHOTO_GLASS_TINT}
               fallback={<View style={[StyleSheet.absoluteFill, styles.galleryChipFallback]} />}
             />
             <View style={styles.galleryChipDot} />
@@ -119,8 +120,8 @@ export function Gallery({
             <View style={styles.count}>
               <GlassLayer
                 radius={999}
-                variant="clear"
                 scheme="dark"
+                tint={PHOTO_GLASS_TINT}
                 fallback={<View style={[StyleSheet.absoluteFill, styles.countFallback]} />}
               />
               <SymbolView name={{ ios: "photo", android: "image", web: "image" }} size={12} tintColor="#FFFFFF" />
@@ -296,11 +297,11 @@ const tabs: { key: VehicleTab; label: string }[] = [
 export function Segmented({ value, onChange }: { value: VehicleTab; onChange: (v: VehicleTab) => void }) {
   const t = useTheme();
   return (
-    <View
-      style={[styles.segmented, { backgroundColor: liquidGlass ? "transparent" : t.control }]}
+    <SegmentTrack
+      count={tabs.length}
+      index={Math.max(0, tabs.findIndex((tab) => tab.key === value))}
       accessibilityRole="tablist"
     >
-      {liquidGlass ? <GlassLayer radius={radius.md} /> : null}
       {tabs.map((tab) => {
         const selected = tab.key === value;
         return (
@@ -309,14 +310,8 @@ export function Segmented({ value, onChange }: { value: VehicleTab; onChange: (v
             onPress={() => onChange(tab.key)}
             accessibilityRole="tab"
             accessibilityState={{ selected }}
-            style={[
-              styles.segmentButton,
-              selected && {
-                backgroundColor: t.controlSelected,
-                borderColor: t.border,
-                borderWidth: StyleSheet.hairlineWidth,
-              },
-            ]}
+            // The highlight behind the selected tab is the track's sliding pill.
+            style={styles.segmentButton}
           >
             <Text
               style={{
@@ -330,7 +325,7 @@ export function Segmented({ value, onChange }: { value: VehicleTab; onChange: (v
           </PopButton>
         );
       })}
-    </View>
+    </SegmentTrack>
   );
 }
 
@@ -773,7 +768,6 @@ const styles = StyleSheet.create({
   },
   iconDot: { width: 32, height: 32, borderRadius: 16, alignItems: "center", justifyContent: "center" },
   nextText: { fontSize: 15, fontWeight: "600" },
-  segmented: { flexDirection: "row", borderRadius: radius.md, padding: 3 },
   segmentButton: {
     flex: 1,
     minHeight: 36,

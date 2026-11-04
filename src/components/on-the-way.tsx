@@ -75,7 +75,7 @@ function OnTheWayCard({ vehicle, width }: { vehicle: VehicleSummary; width: numb
       <View style={styles.clip}>
         <VehicleCover photoId={vehicle.coverPhotoId} style={styles.cover} />
         <View style={styles.chip}>
-          <StatusChip status={vehicle.status} />
+          <StatusChip status={vehicle.status} onPhoto />
         </View>
       </View>
       <View style={styles.body}>

@@ -3,7 +3,6 @@ import { Children, Fragment, type ReactNode } from "react";
 import { Pressable, StyleSheet, Switch, Text, View } from "react-native";
 
 import { PopButton, raised } from "@/components/ui";
-import { GlassLayer, liquidGlass } from "@/components/glass";
 import { radius, spacing, useTheme } from "@/theme/theme";
 
 // Grouped settings list (Account and its sub-screens): a caption, then rounded rows with
@@ -126,11 +125,7 @@ export function ChoiceRow<T extends string | number>({
   return (
     <View style={[styles.row, { flexDirection: "column", alignItems: "stretch", gap: spacing.sm }]}>
       <Text style={[styles.label, { color: t.text, flex: 0 }]}>{label}</Text>
-      <View
-        style={[styles.segmented, { backgroundColor: liquidGlass ? "transparent" : t.control }]}
-        accessibilityRole="radiogroup"
-      >
-        {liquidGlass ? <GlassLayer radius={radius.md} /> : null}
+      <View style={[styles.segmented, { backgroundColor: t.controlOnCard }]} accessibilityRole="radiogroup">
         {options.map((o) => {
           const selected = o.value === value;
           return (

@@ -13,6 +13,7 @@ const light = {
   card: "#FFFFFF",
   control: "#E6E6EB", // search fields and segmented controls sitting on `canvas`
   controlSelected: "#FFFFFF",
+  controlOnCard: "#E6E6EB", // segmented control track inside a card (Appearance)
   // Neutral tile behind every icon (alerts, settings rows, shortcuts); the icon carries the colour.
   iconTile: "#F0F0F3",
   border: "#E4E4E7",
@@ -63,6 +64,7 @@ const dark = {
   card: "#1C1C21",
   control: "#1C1C21",
   controlSelected: "#3A3A41",
+  controlOnCard: "#0B0B0D", // darker than the card, so the selected #3A3A41 pill stands out
   iconTile: "#2A2A30",
   border: "#2E2E33",
   text: "#F4F4F5",

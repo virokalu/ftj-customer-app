@@ -15,8 +15,8 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Chip, FilterSheet, defaultFilters, sortOptions, type ListFilters } from "@/components/filter-sheet";
-import { GlassLayer, liquidGlass } from "@/components/glass";
 import { AppText, Button, PopButton } from "@/components/ui";
+import { SegmentTrack } from "@/components/segment-track";
 import { Bone, BoneCard, PosterGridSkeleton, Skeleton, VehicleRowsSkeleton } from "@/components/skeleton";
 import { BoardingPassCard, PosterTile } from "@/components/vehicle-cards";
 import { useTabBarSpace } from "@/components/tab-bar";
@@ -138,11 +138,7 @@ export default function VehiclesScreen() {
               </PopButton>
             </View>
 
-            <View
-              style={[styles.segmented, { backgroundColor: liquidGlass ? "transparent" : t.control }]}
-              accessibilityRole="tablist"
-            >
-              {liquidGlass ? <GlassLayer radius={radius.md} /> : null}
+            <SegmentTrack count={2} index={tab === "active" ? 0 : 1} accessibilityRole="tablist">
               <SegmentButton
                 label={`On the way${activeTotal !== null ? ` (${activeTotal})` : ""}`}
                 selected={tab === "active"}
@@ -153,7 +149,7 @@ export default function VehiclesScreen() {
                 selected={tab === "history"}
                 onPress={() => setTab("history")}
               />
-            </View>
+            </SegmentTrack>
 
             <View style={styles.searchRow}>
               <View style={[styles.search, { backgroundColor: t.control }]}>
@@ -336,14 +332,8 @@ function SegmentButton({
       onPress={onPress}
       accessibilityRole="tab"
       accessibilityState={{ selected }}
-      style={[
-        styles.segment,
-        selected && {
-          backgroundColor: t.controlSelected,
-          borderColor: t.border,
-          borderWidth: StyleSheet.hairlineWidth,
-        },
-      ]}
+      // The highlight behind the selected tab is the track's sliding pill.
+      style={styles.segment}
     >
       <Text
         style={{
@@ -419,7 +409,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  segmented: { flexDirection: "row", borderRadius: radius.md, padding: 3 },
   segment: {
     flex: 1,
     minHeight: 36,
