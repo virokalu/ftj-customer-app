@@ -68,7 +68,7 @@ const dark = {
   text: "#F4F4F5",
   textMuted: "#A1A1AA",
   accent: "#C81E3A", // deeper crimson: white text on it is 5.7:1
-  accentText: "#F05A70", // lighter crimson for links and labels: 5.8:1 on the background
+  accentText: "#C81E3A", // the main crimson, same as the tab bar and buttons (3.5:1 on the background)
   accentSoft: "#3A1A20",
   onAccent: "#FFFFFF",
   danger: "#F87171",

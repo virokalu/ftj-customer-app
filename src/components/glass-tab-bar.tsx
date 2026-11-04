@@ -106,8 +106,9 @@ function TabButton({
     opacity: lift.value,
     transform: [{ translateY: 5 * (1 - lift.value) }],
   }));
-  // Unselected icons use the main text colour (not the muted grey) so they stand out on the glass.
-  const color = focused ? t.accentText : t.text;
+  // Selected: the main crimson (the button colour), not the lighter link crimson, which reads as
+  // rose on the glass in dark mode. Unselected: the main text colour, so they stand out too.
+  const color = focused ? t.accent : t.text;
 
   return (
     <Pressable
