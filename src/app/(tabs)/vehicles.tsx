@@ -15,6 +15,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Chip, FilterSheet, defaultFilters, sortOptions, type ListFilters } from "@/components/filter-sheet";
+import { GlassLayer, liquidGlass } from "@/components/glass";
 import { AppText, Button, PopButton } from "@/components/ui";
 import { Bone, BoneCard, PosterGridSkeleton, Skeleton, VehicleRowsSkeleton } from "@/components/skeleton";
 import { BoardingPassCard, PosterTile } from "@/components/vehicle-cards";
@@ -130,13 +131,18 @@ export default function VehiclesScreen() {
                 accessibilityRole="button"
                 accessibilityLabel="Link a vehicle"
                 hitSlop={8}
+                glass={18}
                 style={[styles.circle, { borderColor: t.border }]}
               >
                 <SymbolView name={{ ios: "plus", android: "add", web: "add" }} size={16} tintColor={t.text} />
               </PopButton>
             </View>
 
-            <View style={[styles.segmented, { backgroundColor: t.control }]} accessibilityRole="tablist">
+            <View
+              style={[styles.segmented, { backgroundColor: liquidGlass ? "transparent" : t.control }]}
+              accessibilityRole="tablist"
+            >
+              {liquidGlass ? <GlassLayer radius={radius.md} /> : null}
               <SegmentButton
                 label={`On the way${activeTotal !== null ? ` (${activeTotal})` : ""}`}
                 selected={tab === "active"}
@@ -187,6 +193,8 @@ export default function VehiclesScreen() {
                   accessibilityRole="button"
                   accessibilityLabel={filtered ? "Filters, active" : "Filters"}
                   hitSlop={6}
+                  // Glass when off; the crimson tint shows when filters are on.
+                  glass={filtered ? undefined : radius.md}
                   style={[styles.filterButton, { backgroundColor: filtered ? t.accentSoft : t.control }]}
                 >
                   <SymbolView
@@ -371,6 +379,7 @@ function LayoutButton({
       accessibilityLabel={label}
       accessibilityState={{ selected }}
       hitSlop={4}
+      glass={selected ? undefined : radius.md}
       style={[styles.filterButton, { backgroundColor: selected ? t.accent : t.control }]}
     >
       <SymbolView name={icon} size={16} tintColor={selected ? t.onAccent : t.text} />

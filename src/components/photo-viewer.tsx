@@ -79,6 +79,8 @@ export function PhotoViewer({
             accessibilityRole="button"
             accessibilityLabel="Close photos"
             hitSlop={12}
+            glass={18}
+            glassScheme="dark"
             style={styles.close}
           >
             <SymbolView

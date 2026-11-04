@@ -21,7 +21,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { GlassLayer } from "@/components/glass";
+import { GlassLayer, liquidGlass } from "@/components/glass";
 import { radius, spacing, useTheme } from "@/theme/theme";
 
 export function Screen({ children }: { children: ReactNode }) {
@@ -97,26 +97,40 @@ export function PopPressable({
 /**
  * A button whose content (its text or icon) pops once when pressed, while the button itself stays
  * put and keeps its own `style` (which may be a function of `pressed`). `contentStyle` lays out
- * the content when there is more than one child (e.g. an icon + text row).
+ * the content when there is more than one child (e.g. an icon + text row). `glass` (the corner
+ * radius) puts Liquid Glass behind it on iOS 26+ in place of its fill; elsewhere the fill stays.
  */
 export function PopButton({
   children,
   contentStyle,
   onPressIn,
+  glass,
+  glassScheme,
+  style,
   ...props
 }: Omit<PressableProps, "children"> & {
   children: ReactNode;
   contentStyle?: StyleProp<ViewStyle>;
+  glass?: number;
+  /** Force dark glass over photos, whatever the app theme. */
+  glassScheme?: "light" | "dark";
 }) {
   const pop = usePop();
+  const onGlass = glass !== undefined && liquidGlass;
   return (
     <Pressable
       {...props}
+      style={
+        onGlass
+          ? (state) => [typeof style === "function" ? style(state) : style, glassFill]
+          : style
+      }
       onPressIn={(e) => {
         pop.trigger();
         onPressIn?.(e);
       }}
     >
+      {onGlass ? <GlassLayer radius={glass} scheme={glassScheme} /> : null}
       <Animated.View style={[contentStyle, pop.style]}>{children}</Animated.View>
     </Pressable>
   );
@@ -149,7 +163,9 @@ export function Button({
   const primary = variant === "primary";
   const danger = variant === "danger";
   const glass = variant === "glass";
-  const fill = primary ? t.accent : danger ? t.danger : glass ? "transparent" : t.card;
+  // Secondary buttons are glass too where Liquid Glass exists, keeping their hairline edge.
+  const glassBehind = glass || (variant === "secondary" && liquidGlass);
+  const fill = primary ? t.accent : danger ? t.danger : glassBehind ? "transparent" : t.card;
   const label = primary ? t.onAccent : danger ? t.onDanger : t.text;
 
   const labelPop = usePop();
@@ -177,7 +193,7 @@ export function Button({
       ]}
     >
       {/* Behind the label and outside its pop, so only the text scales. */}
-      {glass ? <GlassLayer radius={radius.md} /> : null}
+      {glassBehind ? <GlassLayer radius={radius.md} /> : null}
       {loading ? (
         <ActivityIndicator color={label} />
       ) : (
@@ -231,6 +247,10 @@ export const raised = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
   },
 }).card;
+
+// Over Liquid Glass a button drops its own fill and shadow (a shadow on a clear view would
+// outline the icon instead of the button).
+const glassFill: ViewStyle = { backgroundColor: "transparent", shadowOpacity: 0, elevation: 0 };
 
 const styles = StyleSheet.create({
   button: {

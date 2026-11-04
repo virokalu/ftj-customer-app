@@ -31,6 +31,8 @@ export default function UpdatesScreen() {
             disabled={markRead.isPending}
             accessibilityRole="button"
             hitSlop={8}
+            glass={999}
+            style={[styles.markAll, { borderColor: t.border }]}
           >
             <Text style={{ color: t.accentText, fontSize: 15, fontWeight: "600" }}>Mark all read</Text>
           </PopButton>
@@ -117,6 +119,12 @@ const styles = StyleSheet.create({
     paddingTop: spacing.md,
   },
   title: { fontSize: 28, fontWeight: "700" },
+  markAll: {
+    paddingHorizontal: spacing.md - 2,
+    paddingVertical: 6,
+    borderRadius: 999,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
   cardRow: {
     paddingHorizontal: spacing.md,
     borderLeftWidth: StyleSheet.hairlineWidth,

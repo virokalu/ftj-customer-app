@@ -171,6 +171,7 @@ function Header({ name }: { name: string | null }) {
         accessibilityRole="button"
         accessibilityLabel="Messages"
         hitSlop={8}
+        glass={CIRCLE / 2}
         style={[styles.circle, raised, { backgroundColor: t.card, borderColor: t.border }]}
       >
         <SymbolView
@@ -320,7 +321,8 @@ function TeamCard() {
         accessibilityRole="button"
         accessibilityLabel="Message the team"
         hitSlop={8}
-        style={[styles.circle, { backgroundColor: t.control, borderColor: t.control }]}
+        glass={CIRCLE / 2}
+        style={[styles.circle, { backgroundColor: t.control, borderColor: t.border }]}
       >
         <SymbolView
           name={{ ios: "bubble.left", android: "chat_bubble", web: "chat_bubble" }}

@@ -181,6 +181,8 @@ export function Chip({
       onPress={onPress}
       accessibilityRole="button"
       accessibilityState={{ selected }}
+      // Unselected chips are glass; the selected one stays solid crimson.
+      glass={selected ? undefined : 999}
       style={[
         styles.chip,
         selected

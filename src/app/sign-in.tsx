@@ -29,7 +29,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AuthHero } from "@/components/auth-hero";
 import { LoadingDots, RoadLoader } from "@/components/road-loader";
 import { JourneySteps } from "@/components/journey-steps";
-import { AppText, Button, PopPressable } from "@/components/ui";
+import { AppText, Button, PopButton, PopPressable } from "@/components/ui";
 import { WordReveal } from "@/components/word-reveal";
 import { useFirstVisit } from "@/lib/first-visit";
 import { useAuth } from "@/features/auth/auth-context";
@@ -355,13 +355,14 @@ export default function SignInScreen() {
           >
             {/* No loading state on the button itself: the fields card above shows the progress. */}
             <Button label="Sign in" haptic pop onPress={onSubmit} />
-            <PopPressable
+            <PopButton
               onPress={goBack}
               accessibilityRole="button"
               accessibilityLabel="Back to welcome"
               hitSlop={8}
-              containerStyle={styles.backTap}
-              style={styles.back}
+              glass={999}
+              style={[styles.backTap, { borderColor: t.border }]}
+              contentStyle={styles.back}
             >
               <SymbolView
                 name={{ ios: "chevron.left", android: "arrow_back_ios_new", web: "arrow_back_ios_new" }}
@@ -371,7 +372,7 @@ export default function SignInScreen() {
               <AppText muted style={{ fontSize: 14, fontWeight: "500" }}>
                 Back to welcome
               </AppText>
-            </PopPressable>
+            </PopButton>
           </Animated.View>
 
           {/* Pushes the footer to the bottom, like the buttons on Welcome. */}
@@ -465,7 +466,15 @@ const styles = StyleSheet.create({
     gap: spacing.xs + 2,
     marginTop: spacing.md,
   },
-  backTap: { alignSelf: "center", marginTop: spacing.md },
+  // A glass pill on iOS 26+; elsewhere just its hairline edge.
+  backTap: {
+    alignSelf: "center",
+    marginTop: spacing.md,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: 999,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
   back: {
     flexDirection: "row",
     alignItems: "center",

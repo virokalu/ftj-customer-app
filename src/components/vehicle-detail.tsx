@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
 
-import { GlassLayer } from "@/components/glass";
+import { GlassLayer, liquidGlass } from "@/components/glass";
 import { JourneyIcon } from "@/components/journey-icons";
 import { PopButton, raised } from "@/components/ui";
 import { DocumentRowsSkeleton, PhotoGridSkeleton, TimelineSkeleton } from "@/components/skeleton";
@@ -296,7 +296,11 @@ const tabs: { key: VehicleTab; label: string }[] = [
 export function Segmented({ value, onChange }: { value: VehicleTab; onChange: (v: VehicleTab) => void }) {
   const t = useTheme();
   return (
-    <View style={[styles.segmented, { backgroundColor: t.control }]} accessibilityRole="tablist">
+    <View
+      style={[styles.segmented, { backgroundColor: liquidGlass ? "transparent" : t.control }]}
+      accessibilityRole="tablist"
+    >
+      {liquidGlass ? <GlassLayer radius={radius.md} /> : null}
       {tabs.map((tab) => {
         const selected = tab.key === value;
         return (
