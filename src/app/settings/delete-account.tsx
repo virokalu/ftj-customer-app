@@ -121,10 +121,9 @@ export default function DeleteAccountScreen() {
           )}
         </View>
 
-        {/* Destructive action: danger fill, never the brand crimson. */}
+        {/* Destructive action, in the brand crimson like the rest of the app. */}
         <Button
           label="Delete account"
-          variant="danger"
           onPress={confirm}
           loading={remove.isPending}
           disabled={!password}
