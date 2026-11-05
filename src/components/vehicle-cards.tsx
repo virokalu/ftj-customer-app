@@ -93,12 +93,17 @@ export function BoardingPassCard({ vehicle }: { vehicle: VehicleSummary }) {
 
 /**
  * Two per row, "Poster tile": the photo fills the card, a dark fade at the bottom carries the name
- * and details in white, and the status sits top-left.
+ * and details in white, and the status sits top-left. The text is always the same four one-line
+ * rows (brand, model, year · grade, journey), so it lines up with the tile next to it however
+ * long the names are.
  */
 export function PosterTile({ vehicle, width }: { vehicle: VehicleSummary; width: number }) {
   const t = useTheme();
   const height = Math.round(width * 1.3);
   const stub = stubText(vehicle);
+  // Brand on its own small line over the model; a car with only one of them shows it as the model.
+  const model = vehicle.model ?? vehicle.brand ?? "Your vehicle";
+  const brand = vehicle.model ? vehicle.brand : null;
   return (
     <Pressable
       onPress={() => open(vehicle.id)}
@@ -125,18 +130,20 @@ export function PosterTile({ vehicle, width }: { vehicle: VehicleSummary; width:
         <View style={styles.posterChip}>
           <StatusChip status={vehicle.status} />
         </View>
+        {/* An empty row keeps its height (a no-break space), so the rows still line up. */}
         <View style={styles.posterText}>
-          <Text style={styles.posterName} numberOfLines={2}>
-            {vehicleName(vehicle)}
+          <Text style={styles.posterBrand} numberOfLines={1}>
+            {brand || "\u00A0"}
+          </Text>
+          <Text style={styles.posterName} numberOfLines={1}>
+            {model}
           </Text>
           <Text style={styles.posterSub} numberOfLines={1}>
-            {vehicleSpec(vehicle)}
+            {vehicleSpec(vehicle) || "\u00A0"}
           </Text>
-          {stub ? (
-            <Text style={styles.posterSub} numberOfLines={1}>
-              {stub}
-            </Text>
-          ) : null}
+          <Text style={styles.posterSub} numberOfLines={1}>
+            {stub || "\u00A0"}
+          </Text>
         </View>
       </View>
     </Pressable>
@@ -172,6 +179,13 @@ const styles = StyleSheet.create({
     right: spacing.sm + 2,
     bottom: spacing.md,
     gap: 2,
+  },
+  posterBrand: {
+    color: "rgba(255,255,255,0.7)",
+    fontSize: 11,
+    fontWeight: "600",
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
   },
   posterName: { color: "#FFFFFF", fontSize: 15, fontWeight: "700" },
   posterSub: { color: "rgba(255,255,255,0.85)", fontSize: 11.5, fontWeight: "500" },
