@@ -49,8 +49,9 @@ export function Title({ children }: { children: ReactNode }) {
 /**
  * One small "pop" (to 105% and smoothly back, no bounce) for press feedback. `trigger` is called
  * on press-in so the pop is seen even when the press navigates away. Off under Reduce Motion.
+ * `to` is how big it grows: less for big content such as a whole card.
  */
-export function usePop() {
+export function usePop(to = 1.05) {
   const reduceMotion = useReducedMotion();
   const scale = useSharedValue(1);
   const style = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
@@ -58,7 +59,7 @@ export function usePop() {
     if (reduceMotion) return;
     scale.set(
       withSequence(
-        withTiming(1.05, { duration: 100, easing: Easing.out(Easing.quad) }),
+        withTiming(to, { duration: 100, easing: Easing.out(Easing.quad) }),
         // A plain timed return (no spring), so it settles without bouncing.
         withTiming(1, { duration: 140, easing: Easing.inOut(Easing.quad) }),
       ),
@@ -108,6 +109,7 @@ export function PopButton({
   onPressIn,
   glass,
   glassScheme,
+  popScale,
   style,
   ...props
 }: Omit<PressableProps, "children"> & {
@@ -116,8 +118,10 @@ export function PopButton({
   glass?: number;
   /** Force dark glass over photos, whatever the app theme. */
   glassScheme?: "light" | "dark";
+  /** How big the content pops (see usePop); smaller for whole cards. */
+  popScale?: number;
 }) {
-  const pop = usePop();
+  const pop = usePop(popScale);
   const onGlass = glass !== undefined && liquidGlass;
   return (
     <Pressable

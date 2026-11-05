@@ -89,7 +89,12 @@ export function StatusChip({ status, onPhoto }: { status: VehicleStatus; onPhoto
         onPhoto ? (
           <GlassLayer radius={999} scheme="dark" tint={PHOTO_GLASS_TINT} />
         ) : (
-          <GlassLayer radius={999} tint={tone.bg} />
+          // The status colour, see-through, so the chip reads as tinted glass: about 65%, and 40%
+          // for the strong Shipped and Arrived colours.
+          <GlassLayer
+            radius={999}
+            tint={`${tone.bg}${status === "SHIPPED" || status === "ARRIVED" ? "66" : "A6"}`}
+          />
         )
       ) : null}
       <View style={[styles.chipDot, { backgroundColor: fg }]} />
@@ -113,6 +118,7 @@ export function PortTrack({
   progress,
   stage,
   stacked,
+  full,
 }: {
   from: string | null;
   to: string | null;
@@ -123,6 +129,8 @@ export function PortTrack({
    * the same place on every card in a list, however long the names are (Boarding pass).
    */
   stacked?: boolean;
+  /** Whole port names, wrapping onto more lines (the Shipping popup). */
+  full?: boolean;
 }) {
   const t = useTheme();
   const pct = `${Math.round(progress * 100)}%` as const;
@@ -139,16 +147,17 @@ export function PortTrack({
     </View>
   );
   const label = `From ${fromName} to ${toName}. ${stageLabel[stage]}`;
+  const lines = full ? undefined : 1;
 
   if (stacked) {
     return (
       <View style={{ gap: 4 }} accessible accessibilityLabel={label}>
         <View style={styles.stackedLine}>{line}</View>
         <View style={styles.stackedPorts}>
-          <Text style={[styles.stackedPort, { color: t.text }]} numberOfLines={1}>
+          <Text style={[styles.stackedPort, { color: t.text }]} numberOfLines={lines}>
             {fromName}
           </Text>
-          <Text style={[styles.stackedPort, { color: t.text, textAlign: "right" }]} numberOfLines={1}>
+          <Text style={[styles.stackedPort, { color: t.text, textAlign: "right" }]} numberOfLines={lines}>
             {toName}
           </Text>
         </View>
@@ -158,11 +167,11 @@ export function PortTrack({
 
   return (
     <View style={styles.track} accessible accessibilityLabel={label}>
-      <Text style={[styles.port, { color: t.text }]} numberOfLines={1}>
+      <Text style={[styles.port, { color: t.text }]} numberOfLines={lines}>
         {fromName}
       </Text>
       {line}
-      <Text style={[styles.port, { color: t.text, textAlign: "right" }]} numberOfLines={1}>
+      <Text style={[styles.port, { color: t.text, textAlign: "right" }]} numberOfLines={lines}>
         {toName}
       </Text>
     </View>

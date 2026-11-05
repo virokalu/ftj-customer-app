@@ -1,13 +1,16 @@
+import { BlurView } from "expo-blur";
 import { SymbolView, type SymbolViewProps } from "expo-symbols";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import {
   ActivityIndicator,
   Alert,
   FlatList,
+  Modal,
   Pressable,
   StyleSheet,
   Text,
   View,
+  useColorScheme,
   useWindowDimensions,
 } from "react-native";
 import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";
@@ -397,35 +400,7 @@ export function OverviewTab({
 
       <View style={{ gap: spacing.sm }}>
         <SectionLabel>Shipping</SectionLabel>
-        <View
-          style={[styles.panel, raised, { backgroundColor: t.card, borderColor: t.border, gap: spacing.md }]}
-        >
-          <PortTrack
-            from={vehicle.portOfLoading}
-            to={vehicle.portOfDischarge ?? vehicle.destination}
-            progress={journeyProgress(vehicle)}
-            stage={journeyStage(vehicle)}
-          />
-          <View style={styles.pairs}>
-            <Pair label="Departure (ETD)" value={formatDate(vehicle.etd)} />
-            <Pair label="Arrival (ETA)" value={formatDate(vehicle.eta)} />
-            <Pair label="Vessel" value={vehicle.vesselName} />
-            <Pair label="Destination" value={vehicle.destination} />
-            <Pair label="Voyage" value={vehicle.voyageNo} />
-            <Pair label="Bill of lading no." value={vehicle.blNo} />
-            <Pair
-              label="Shipping method"
-              value={
-                vehicle.shippingMethod === "RORO"
-                  ? "Roll-on/roll-off"
-                  : vehicle.shippingMethod === "CONTAINER"
-                    ? "Container"
-                    : null
-              }
-            />
-            <Pair label="Container" value={vehicle.containerNumber} />
-          </View>
-        </View>
+        <ShippingCard vehicle={vehicle} />
       </View>
     </View>
   );
@@ -519,25 +494,171 @@ function Fact({
   label: string;
 }) {
   const t = useTheme();
+  // A long value (a model or grade name) is cut to one line on the card: tapping shows the same
+  // card bigger in the middle of the screen, over a blurred page, with the whole text.
+  const [open, setOpen] = useState(false);
+  const close = () => setOpen(false);
   return (
-    <View style={[styles.panel, styles.fact, raised, { backgroundColor: t.card, borderColor: t.border }]}>
-      <SymbolView name={icon} size={16} tintColor={t.accentText} />
-      <Text style={[styles.factValue, { color: t.text }]} numberOfLines={1}>
-        {value ?? "-"}
-      </Text>
-      <Text style={{ color: t.textMuted, fontSize: 12 }}>{label}</Text>
-    </View>
+    <>
+      <PopButton
+        onPress={() => setOpen(true)}
+        accessibilityRole="button"
+        accessibilityLabel={`${label}: ${value ?? "not set"}`}
+        accessibilityHint="Shows the full text"
+        style={[styles.panel, styles.fact, raised, { backgroundColor: t.card, borderColor: t.border }]}
+        contentStyle={{ gap: 4 }}
+        // A gentle pop: the default 105% is a big jump for a whole card.
+        popScale={1.015}
+      >
+        <SymbolView name={icon} size={16} tintColor={t.accentText} />
+        <Text style={[styles.factValue, { color: t.text }]} numberOfLines={1}>
+          {value ?? "-"}
+        </Text>
+        <Text style={{ color: t.textMuted, fontSize: 12 }}>{label}</Text>
+      </PopButton>
+
+      <DetailPopup
+        open={open}
+        onClose={close}
+        top={<SymbolView name={icon} size={26} tintColor={t.accentText} />}
+      >
+        <Text style={[styles.factBigValue, { color: t.text }]} selectable>
+          {value ?? "-"}
+        </Text>
+        <Text style={{ color: t.textMuted, fontSize: 15 }}>{label}</Text>
+      </DetailPopup>
+    </>
   );
 }
 
-function Pair({ label, value }: { label: string; value: string | null }) {
+/**
+ * The Shipping card: the port track and the sailing details, each cut to one line. Tapping it
+ * shows the same card bigger over a blurred page, with every name and number in full.
+ */
+function ShippingCard({ vehicle }: { vehicle: VehicleDetail }) {
+  const t = useTheme();
+  const [open, setOpen] = useState(false);
+  const close = () => setOpen(false);
+  const track = (full: boolean) => (
+    <PortTrack
+      from={vehicle.portOfLoading}
+      to={vehicle.portOfDischarge ?? vehicle.destination}
+      progress={journeyProgress(vehicle)}
+      stage={journeyStage(vehicle)}
+      stacked={full}
+      full={full}
+    />
+  );
+  const pairs = (full: boolean) => (
+    <View style={styles.pairs}>
+      <Pair full={full} label="Departure (ETD)" value={formatDate(vehicle.etd)} />
+      <Pair full={full} label="Arrival (ETA)" value={formatDate(vehicle.eta)} />
+      <Pair full={full} label="Vessel" value={vehicle.vesselName} />
+      <Pair full={full} label="Destination" value={vehicle.destination} />
+      <Pair full={full} label="Voyage" value={vehicle.voyageNo} />
+      <Pair full={full} label="Bill of lading no." value={vehicle.blNo} />
+      <Pair
+        full={full}
+        label="Shipping method"
+        value={
+          vehicle.shippingMethod === "RORO"
+            ? "Roll-on/roll-off"
+            : vehicle.shippingMethod === "CONTAINER"
+              ? "Container"
+              : null
+        }
+      />
+      <Pair full={full} label="Container" value={vehicle.containerNumber} />
+    </View>
+  );
+
+  return (
+    <>
+      <PopButton
+        onPress={() => setOpen(true)}
+        accessibilityRole="button"
+        accessibilityLabel="Shipping details"
+        accessibilityHint="Shows the full details"
+        style={[styles.panel, raised, { backgroundColor: t.card, borderColor: t.border }]}
+        contentStyle={{ gap: spacing.md }}
+        // A gentle pop: the default 105% is a big jump for a whole card.
+        popScale={1.015}
+      >
+        {track(false)}
+        {pairs(false)}
+      </PopButton>
+
+      <DetailPopup
+        open={open}
+        onClose={close}
+        top={<Text style={[styles.popupTitle, { color: t.text }]}>Shipping</Text>}
+      >
+        <View style={{ gap: spacing.md, marginTop: spacing.sm }}>
+          {track(true)}
+          {pairs(true)}
+        </View>
+      </DetailPopup>
+    </>
+  );
+}
+
+/**
+ * A card from the vehicle page shown bigger in the middle of the screen over the blurred page,
+ * with its text in full. `top` sits left of the ✕. Tapping outside the card, or the ✕, closes it.
+ */
+function DetailPopup({
+  open,
+  onClose,
+  top,
+  children,
+}: {
+  open: boolean;
+  onClose: () => void;
+  top: ReactNode;
+  children: ReactNode;
+}) {
+  const t = useTheme();
+  const dark = useColorScheme() === "dark";
+  return (
+    <Modal visible={open} transparent animationType="fade" onRequestClose={onClose} statusBarTranslucent>
+      <Pressable onPress={onClose} accessibilityLabel="Close" style={styles.popupBackdrop}>
+        <BlurView
+          intensity={dark ? 40 : 30}
+          tint={dark ? "systemThinMaterialDark" : "systemThinMaterialLight"}
+          style={StyleSheet.absoluteFill}
+        />
+        {/* A tap on the card itself keeps it open. */}
+        <Pressable
+          onPress={() => {}}
+          accessible={false}
+          style={[styles.panel, styles.popup, raised, { backgroundColor: t.card, borderColor: t.border }]}
+          accessibilityViewIsModal
+        >
+          <View style={styles.popupTop}>
+            {top}
+            <PopButton onPress={onClose} accessibilityRole="button" accessibilityLabel="Close" hitSlop={8}>
+              <SymbolView name={{ ios: "xmark", android: "close", web: "close" }} size={16} tintColor={t.text} />
+            </PopButton>
+          </View>
+          {children}
+        </Pressable>
+      </Pressable>
+    </Modal>
+  );
+}
+
+function Pair({ label, value, full }: { label: string; value: string | null; full?: boolean }) {
   const t = useTheme();
   // Every field but a few can be null: hide the row rather than showing an empty value.
   if (!value) return null;
   return (
     <View style={styles.pair}>
       <Text style={{ color: t.textMuted, fontSize: 12 }}>{label}</Text>
-      <Text style={{ color: t.text, fontSize: 15, fontWeight: "600" }} numberOfLines={1}>
+      <Text
+        style={{ color: t.text, fontSize: 15, fontWeight: "600" }}
+        numberOfLines={full ? undefined : 1}
+        selectable={full}
+      >
         {value}
       </Text>
     </View>
@@ -784,6 +905,11 @@ const styles = StyleSheet.create({
   grid: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
   fact: { width: "48.5%", gap: 4 },
   factValue: { fontSize: 16, fontWeight: "700", marginTop: 4 },
+  factBigValue: { fontSize: 28, fontWeight: "700", marginTop: spacing.sm },
+  popupBackdrop: { flex: 1, justifyContent: "center", padding: spacing.lg },
+  popup: { gap: spacing.xs, padding: spacing.lg },
+  popupTop: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  popupTitle: { fontSize: 18, fontWeight: "700" },
   pairs: { flexDirection: "row", flexWrap: "wrap", rowGap: spacing.md },
   pair: { width: "50%", gap: 2, paddingRight: spacing.sm },
   step: { flexDirection: "row", gap: spacing.md },
