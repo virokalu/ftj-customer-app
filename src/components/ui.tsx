@@ -1,4 +1,6 @@
 import * as Haptics from "expo-haptics";
+import { router } from "expo-router";
+import { SymbolView } from "expo-symbols";
 import type { ReactNode } from "react";
 import {
   ActivityIndicator,
@@ -248,11 +250,72 @@ export const raised = StyleSheet.create({
   },
 }).card;
 
+/**
+ * The top of a bottom sheet (Filter vehicles, Link a vehicle): a grabber line in the centre that
+ * shows it can be pulled down, the title on the left, and a ✕ (black in light mode, white in dark).
+ */
+export function SheetHeader({ title, onClose }: { title: string; onClose: () => void }) {
+  const t = useTheme();
+  return (
+    <>
+      <View style={[styles.grabber, { backgroundColor: t.textMuted }]} />
+      <View style={[styles.sheetHeader, { borderBottomColor: t.border }]}>
+        <Text style={[styles.sheetTitle, { color: t.text }]}>{title}</Text>
+        <PopButton onPress={onClose} accessibilityRole="button" accessibilityLabel="Close" hitSlop={8}>
+          <SymbolView name={{ ios: "xmark", android: "close", web: "close" }} size={16} tintColor={t.text} />
+        </PopButton>
+      </View>
+    </>
+  );
+}
+
+/**
+ * The round glass back button (vehicle page, and the header of every pushed page): a 36 pt circle
+ * with a chevron. The glass sits behind the button so only the chevron pops. Goes back, or Home
+ * when there is nothing to go back to (opened from a link).
+ */
+export function BackButton({ style }: { style?: StyleProp<ViewStyle> }) {
+  const t = useTheme();
+  return (
+    <View style={[styles.back, style]}>
+      <GlassLayer
+        radius={18}
+        fallback={<View style={[styles.backFallback, raised, { backgroundColor: t.card, borderColor: t.border }]} />}
+      />
+      <PopButton
+        onPress={() => (router.canGoBack() ? router.back() : router.replace("/"))}
+        accessibilityRole="button"
+        accessibilityLabel="Back"
+        hitSlop={8}
+        style={styles.backButton}
+      >
+        <SymbolView
+          name={{ ios: "chevron.left", android: "arrow_back", web: "arrow_back" }}
+          size={16}
+          tintColor={t.text}
+        />
+      </PopButton>
+    </View>
+  );
+}
+
 // Over Liquid Glass a button drops its own fill and shadow (a shadow on a clear view would
 // outline the icon instead of the button).
 const glassFill: ViewStyle = { backgroundColor: "transparent", shadowOpacity: 0, elevation: 0 };
 
 const styles = StyleSheet.create({
+  grabber: { alignSelf: "center", width: 48, height: 5, borderRadius: 2.5, marginTop: spacing.sm, opacity: 0.4 },
+  sheetHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: spacing.md,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  sheetTitle: { fontSize: 18, fontWeight: "700" },
+  back: { width: 36, height: 36 },
+  backFallback: { flex: 1, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth },
+  backButton: { flex: 1, alignItems: "center", justifyContent: "center" },
   button: {
     minHeight: 48,
     borderRadius: radius.md,

@@ -2,10 +2,10 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack, router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useRef, useState } from "react";
-import { ActivityIndicator } from "react-native";
+import { ActivityIndicator, useColorScheme } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
-import { Centered } from "@/components/ui";
+import { BackButton, Centered } from "@/components/ui";
 import { AuthProvider, useAuth } from "@/features/auth/auth-context";
 import { ApiError } from "@/lib/api/client";
 import { useTheme } from "@/theme/theme";
@@ -41,6 +41,7 @@ export default function RootLayout() {
 function RootNavigator() {
   const { isLoading, isSignedIn } = useAuth();
   const t = useTheme();
+  const dark = useColorScheme() === "dark";
 
   // After signing out (or the session expiring) always start again at Welcome. Without this the
   // router restores the signed-out history from before sign-in (Welcome -> Sign in) and the
@@ -58,6 +59,24 @@ function RootNavigator() {
       </Centered>
     );
   }
+
+  // Pages with a header: the app's round glass back button (arrow only, no "Account" title), no
+  // blurred fade under the header, and the header matches the page colour.
+  const header = {
+    headerShown: true,
+    // The same 36 pt glass back button as the vehicle page, in place of the system one.
+    headerBackVisible: false,
+    headerLeft: () => <BackButton />,
+    // iOS 26 puts its own glass capsule behind header buttons; ours already is glass, so hide it.
+    unstable_headerLeftItems: () => [{ type: "custom" as const, element: <BackButton />, hidesSharedBackground: true }],
+    headerTintColor: t.text,
+    headerTitleStyle: { color: t.text },
+    // Dark glass for the back button in dark mode (the header would otherwise stay light).
+    headerUserInterfaceStyle: dark ? "dark" : "light",
+    headerShadowVisible: false,
+    headerStyle: { backgroundColor: t.canvas },
+    scrollEdgeEffects: { top: "hidden" },
+  } as const;
 
   // Route guards: Expo Router only registers the screens whose `guard` is true.
   // Signed out => only /welcome and /sign-in exist. Signed in => only the app screens exist.
@@ -77,30 +96,12 @@ function RootNavigator() {
         <Stack.Screen name="(tabs)" />
         {/* The page draws its own back button over the gallery (sheet 3). */}
         <Stack.Screen name="vehicle/[id]" />
-        <Stack.Screen
-          name="messages"
-          options={{ headerShown: true, title: "Messages", headerBackTitle: "Back" }}
-        />
-        <Stack.Screen
-          name="settings/details"
-          options={{ headerShown: true, title: "Personal details", headerBackTitle: "Account" }}
-        />
-        <Stack.Screen
-          name="settings/notifications"
-          options={{ headerShown: true, title: "Notifications", headerBackTitle: "Account" }}
-        />
-        <Stack.Screen
-          name="settings/help"
-          options={{ headerShown: true, title: "Help & FAQs", headerBackTitle: "Account" }}
-        />
-        <Stack.Screen
-          name="settings/delete-account"
-          options={{ headerShown: true, title: "Delete account", headerBackTitle: "Account" }}
-        />
-        <Stack.Screen
-          name="link-vehicle"
-          options={{ headerShown: true, title: "Link a vehicle", presentation: "modal" }}
-        />
+        <Stack.Screen name="messages" options={{ ...header, title: "Messages" }} />
+        <Stack.Screen name="settings/details" options={{ ...header, title: "Personal details" }} />
+        <Stack.Screen name="settings/notifications" options={{ ...header, title: "Notifications" }} />
+        <Stack.Screen name="settings/help" options={{ ...header, title: "Help & FAQs" }} />
+        <Stack.Screen name="settings/delete-account" options={{ ...header, title: "Delete account" }} />
+        <Stack.Screen name="link-vehicle" options={{ ...header, title: "Link a vehicle" }} />
       </Stack.Protected>
     </Stack>
   );

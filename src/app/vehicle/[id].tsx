@@ -5,7 +5,7 @@ import { RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { GlassLayer } from "@/components/glass";
-import { AppText, Button, Centered, PopButton, raised } from "@/components/ui";
+import { AppText, BackButton, Button, Centered, PopButton } from "@/components/ui";
 import { PhotoViewer } from "@/components/photo-viewer";
 import { VehiclePageSkeleton } from "@/components/skeleton";
 import {
@@ -44,28 +44,8 @@ export default function VehicleScreen() {
     void documents.refetch();
   };
 
-  // Glass circle over the photo; the glass sits behind the button so only the chevron pops.
-  const back = (
-    <View style={[styles.back, { top: insets.top + spacing.sm }]}>
-      <GlassLayer
-        radius={18}
-        fallback={<View style={[styles.backFallback, raised, { backgroundColor: t.card, borderColor: t.border }]} />}
-      />
-      <PopButton
-        onPress={() => (router.canGoBack() ? router.back() : router.replace("/"))}
-        accessibilityRole="button"
-        accessibilityLabel="Back"
-        hitSlop={8}
-        style={styles.backButton}
-      >
-        <SymbolView
-          name={{ ios: "chevron.left", android: "arrow_back", web: "arrow_back" }}
-          size={16}
-          tintColor={t.text}
-        />
-      </PopButton>
-    </View>
-  );
+  // Glass circle over the photo, the same back button as the other pages' headers.
+  const back = <BackButton style={[styles.back, { top: insets.top + spacing.sm }]} />;
 
   if (vehicle.isPending) {
     return (
@@ -168,9 +148,7 @@ export default function VehicleScreen() {
 }
 
 const styles = StyleSheet.create({
-  back: { position: "absolute", left: spacing.md, width: 36, height: 36 },
-  backFallback: { flex: 1, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth },
-  backButton: { flex: 1, alignItems: "center", justifyContent: "center" },
+  back: { position: "absolute", left: spacing.md },
   askFloat: {
     position: "absolute",
     left: spacing.md,

@@ -1,13 +1,13 @@
-import { SymbolView } from "expo-symbols";
 import { useState, type ReactNode } from "react";
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Modal, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { Button, PopButton } from "@/components/ui";
+import { SegmentTrack } from "@/components/segment-track";
+import { Button, PopButton, SheetHeader } from "@/components/ui";
 import { activeStatuses } from "@/features/vehicles/hooks";
 import { statusLabel } from "@/features/vehicles/status";
 import type { VehicleFilters } from "@/lib/api/endpoints";
-import { radius, spacing, useTheme } from "@/theme/theme";
+import { spacing, useTheme } from "@/theme/theme";
 
 export type ActiveStatus = (typeof activeStatuses)[number];
 
@@ -60,18 +60,7 @@ export function FilterSheet({
       onRequestClose={onClose}
     >
       <View style={{ flex: 1, backgroundColor: t.background }}>
-        {/* Grabber: shows this is a sheet that can be pulled down to close. */}
-        <View style={[styles.grabber, { backgroundColor: t.textMuted }]} />
-        <View style={[styles.header, { borderBottomColor: t.border }]}>
-          <Text style={[styles.title, { color: t.text }]}>Filter vehicles</Text>
-          <PopButton onPress={onClose} accessibilityRole="button" accessibilityLabel="Close" hitSlop={8}>
-            <SymbolView
-              name={{ ios: "xmark", android: "close", web: "close" }}
-              size={16}
-              tintColor={t.text}
-            />
-          </PopButton>
-        </View>
+        <SheetHeader title="Filter vehicles" onClose={onClose} />
 
         <ScrollView contentContainerStyle={{ padding: spacing.md, gap: spacing.lg, paddingBottom: 120 }}>
           <Group label="Status">
@@ -112,29 +101,36 @@ export function FilterSheet({
 
           <View style={{ gap: spacing.sm }}>
             <Text style={[styles.groupLabel, { color: t.textMuted }]}>Sort by</Text>
-            <View style={[styles.sortList, { borderColor: t.border }]}>
-              {sortOptions.map((o, i) => (
-                <Pressable
-                  key={o.key}
-                  onPress={() => setDraft({ ...draft, sort: o.key })}
-                  accessibilityRole="radio"
-                  accessibilityState={{ selected: draft.sort === o.key }}
-                  style={[
-                    styles.sortRow,
-                    i > 0 && { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.border },
-                  ]}
-                >
-                  <Text style={{ flex: 1, color: t.text, fontSize: 15 }}>{o.label}</Text>
-                  {draft.sort === o.key ? (
-                    <SymbolView
-                      name={{ ios: "checkmark", android: "check", web: "check" }}
-                      size={15}
-                      tintColor={t.accentText}
-                    />
-                  ) : null}
-                </Pressable>
-              ))}
-            </View>
+            {/* A glass list with a glass highlight that slides to the chosen order (no tick). */}
+            <SegmentTrack
+              vertical
+              count={sortOptions.length}
+              index={Math.max(0, sortOptions.findIndex((o) => o.key === draft.sort))}
+              accessibilityRole="radiogroup"
+            >
+              {sortOptions.map((o) => {
+                const selected = draft.sort === o.key;
+                return (
+                  <PopButton
+                    key={o.key}
+                    onPress={() => setDraft({ ...draft, sort: o.key })}
+                    accessibilityRole="radio"
+                    accessibilityState={{ selected }}
+                    style={styles.sortRow}
+                  >
+                    <Text
+                      style={{
+                        color: selected ? t.text : t.textMuted,
+                        fontSize: 15,
+                        fontWeight: selected ? "600" : "500",
+                      }}
+                    >
+                      {o.label}
+                    </Text>
+                  </PopButton>
+                );
+              })}
+            </SegmentTrack>
           </View>
         </ScrollView>
 
@@ -196,15 +192,6 @@ export function Chip({
 }
 
 const styles = StyleSheet.create({
-  grabber: { alignSelf: "center", width: 48, height: 5, borderRadius: 2.5, marginTop: spacing.sm, opacity: 0.4 },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: spacing.md,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  title: { fontSize: 18, fontWeight: "700" },
   groupLabel: { fontSize: 12, fontWeight: "700", letterSpacing: 0.6, textTransform: "uppercase" },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
   chip: {
@@ -221,6 +208,5 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: spacing.sm,
   },
-  sortList: { borderRadius: radius.md, borderWidth: StyleSheet.hairlineWidth },
-  sortRow: { flexDirection: "row", alignItems: "center", minHeight: 48, paddingHorizontal: spacing.md },
+  sortRow: { minHeight: 46, justifyContent: "center", paddingHorizontal: spacing.md },
 });
