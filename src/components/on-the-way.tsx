@@ -8,8 +8,9 @@ import Animated, {
   type SharedValue,
 } from "react-native-reanimated";
 
+import { GlassLayer } from "@/components/glass";
 import { raised } from "@/components/ui";
-import { PortTrack, StatusChip, VehicleCover } from "@/components/vehicle-bits";
+import { PHOTO_GLASS_TINT, PortTrack, StatusChip, VehicleCover } from "@/components/vehicle-bits";
 import {
   journeyLine,
   journeyProgress,
@@ -20,13 +21,14 @@ import {
 import type { VehicleSummary } from "@/lib/api/schemas";
 import { radius, spacing, useTheme } from "@/theme/theme";
 
-// How much of the next card shows at the right edge, hinting that the row swipes.
-const PEEK = 28;
-
-/** Swipeable "On the way" cards (Home, sheet 2). Full-bleed: it manages its own side padding. */
+/**
+ * Swipeable "On the way" cards (Home, sheet 2), one full-width card per page: a swipe snaps to
+ * the next car, with nothing of it showing at the edge. The "1 / 7" chip on the photo and the
+ * dots below say there are more. Full-bleed: it manages its own side padding.
+ */
 export function OnTheWayCarousel({ vehicles }: { vehicles: VehicleSummary[] }) {
   const { width } = useWindowDimensions();
-  const cardWidth = width - spacing.md * 2 - (vehicles.length > 1 ? PEEK : 0);
+  const cardWidth = width - spacing.md * 2;
   const interval = cardWidth + spacing.md;
   // The scroll position, tracked on the UI thread every frame, so the dots follow the finger
   // instead of waiting for the swipe to come to rest.
@@ -48,14 +50,29 @@ export function OnTheWayCarousel({ vehicles }: { vehicles: VehicleSummary[] }) {
         ItemSeparatorComponent={() => <View style={{ width: spacing.md }} />}
         onScroll={onScroll}
         scrollEventThrottle={16}
-        renderItem={({ item }) => <OnTheWayCard vehicle={item} width={cardWidth} />}
+        renderItem={({ item, index }) => (
+          <OnTheWayCard
+            vehicle={item}
+            width={cardWidth}
+            position={vehicles.length > 1 ? `${index + 1} / ${vehicles.length}` : null}
+          />
+        )}
       />
       {vehicles.length > 1 ? <Dots count={vehicles.length} scrollX={scrollX} interval={interval} /> : null}
     </View>
   );
 }
 
-function OnTheWayCard({ vehicle, width }: { vehicle: VehicleSummary; width: number }) {
+function OnTheWayCard({
+  vehicle,
+  width,
+  position,
+}: {
+  vehicle: VehicleSummary;
+  width: number;
+  /** "1 / 7": which card this is, on the photo. None when there is only one. */
+  position: string | null;
+}) {
   const t = useTheme();
   const subtitle = [vehicleName(vehicle), vehicleSpec(vehicle)].filter(Boolean).join(" · ");
   return (
@@ -64,7 +81,7 @@ function OnTheWayCard({ vehicle, width }: { vehicle: VehicleSummary; width: numb
     <Pressable
       onPress={() => router.push({ pathname: "/vehicle/[id]", params: { id: vehicle.id } })}
       accessibilityRole="button"
-      accessibilityLabel={`${journeyLine(vehicle)}. ${subtitle}`}
+      accessibilityLabel={`${journeyLine(vehicle)}. ${subtitle}${position ? `. ${position.replace(" / ", " of ")}` : ""}`}
       style={({ pressed }) => [
         styles.card,
         raised,
@@ -77,6 +94,18 @@ function OnTheWayCard({ vehicle, width }: { vehicle: VehicleSummary; width: numb
         <View style={styles.chip}>
           <StatusChip status={vehicle.status} onPhoto />
         </View>
+        {position ? (
+          // Dark photo glass, like the status chip and the vehicle page's photo count.
+          <View style={styles.position}>
+            <GlassLayer
+              radius={999}
+              scheme="dark"
+              tint={PHOTO_GLASS_TINT}
+              fallback={<View style={[StyleSheet.absoluteFill, styles.positionFallback]} />}
+            />
+            <Text style={styles.positionText}>{position}</Text>
+          </View>
+        ) : null}
       </View>
       <View style={styles.body}>
         <Text style={[styles.headline, { color: t.text }]} numberOfLines={1}>
@@ -147,8 +176,19 @@ const PILL = 16;
 const styles = StyleSheet.create({
   card: { borderRadius: radius.lg, borderWidth: StyleSheet.hairlineWidth },
   clip: { borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg, overflow: "hidden" },
-  cover: { height: 150 },
+  // Taller than before now that the card has the full width.
+  cover: { height: 180 },
   chip: { position: "absolute", top: spacing.sm, left: spacing.sm },
+  position: {
+    position: "absolute",
+    top: spacing.sm,
+    right: spacing.sm,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 999,
+  },
+  positionFallback: { borderRadius: 999, backgroundColor: "rgba(0,0,0,0.55)" },
+  positionText: { color: "#FFFFFF", fontSize: 12, fontWeight: "600" },
   body: { padding: spacing.md, gap: 2 },
   headline: { fontSize: 19, fontWeight: "700" },
   subtitle: { fontSize: 13 },
