@@ -1,7 +1,7 @@
-import { router } from "expo-router";
+import { router, useNavigation, type NativeStackNavigationProp } from "expo-router";
 import { SymbolView } from "expo-symbols";
-import { useState } from "react";
-import { KeyboardAvoidingView, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { useEffect, useRef, useState, type ComponentRef } from "react";
+import { KeyboardAvoidingView, ScrollView, StyleSheet, Text, TextInput, View, useColorScheme } from "react-native";
 
 import { AppText, Button } from "@/components/ui";
 import { useLinkVehicle } from "@/features/vehicles/hooks";
@@ -18,6 +18,13 @@ export default function LinkVehicleScreen() {
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const link = useLinkVehicle();
+  const dark = useColorScheme() === "dark";
+
+  // Focus the field once the page has slid in, not during the slide: with autoFocus the keyboard
+  // came in from the side together with the page.
+  const navigation = useNavigation<NativeStackNavigationProp<Record<string, undefined>>>();
+  const input = useRef<ComponentRef<typeof TextInput>>(null);
+  useEffect(() => navigation.addListener("transitionEnd", () => input.current?.focus()), [navigation]);
 
   const value = serial.trim().toUpperCase();
   const valid = SERIAL.test(value);
@@ -72,6 +79,7 @@ export default function LinkVehicleScreen() {
     <KeyboardAvoidingView behavior="padding" style={{ flex: 1, backgroundColor: t.canvas }}>
       <ScrollView
         keyboardShouldPersistTaps="handled"
+        contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={{ padding: spacing.lg, gap: spacing.md }}
       >
         <AppText muted style={{ lineHeight: 22 }}>
@@ -90,7 +98,8 @@ export default function LinkVehicleScreen() {
             placeholderTextColor={t.textMuted}
             autoCapitalize="characters"
             autoCorrect={false}
-            autoFocus
+            ref={input}
+            keyboardAppearance={dark ? "dark" : "light"}
             maxLength={11}
             returnKeyType="send"
             onSubmitEditing={submit}

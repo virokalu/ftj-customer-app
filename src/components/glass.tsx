@@ -68,5 +68,5 @@ export function GlassLayer({
 }
 
 const styles = StyleSheet.create({
-  fallback: { ...StyleSheet.absoluteFillObject, overflow: "hidden" },
+  fallback: { ...StyleSheet.absoluteFill, overflow: "hidden" },
 });

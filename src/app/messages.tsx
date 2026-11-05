@@ -1,4 +1,4 @@
-import { View } from "react-native";
+import { ScrollView } from "react-native";
 
 import { AppText } from "@/components/ui";
 import { spacing, useTheme } from "@/theme/theme";
@@ -9,8 +9,13 @@ import { spacing, useTheme } from "@/theme/theme";
 export default function MessagesScreen() {
   const t = useTheme();
   return (
-    <View style={{ flex: 1, backgroundColor: t.canvas, padding: spacing.md }}>
+    // Automatic insets keep the text below the see-through header.
+    <ScrollView
+      style={{ backgroundColor: t.canvas }}
+      contentInsetAdjustmentBehavior="automatic"
+      contentContainerStyle={{ padding: spacing.md }}
+    >
       <AppText muted>Your conversations with the FTJ team will appear here.</AppText>
-    </View>
+    </ScrollView>
   );
 }
