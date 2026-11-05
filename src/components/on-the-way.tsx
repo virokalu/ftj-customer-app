@@ -92,7 +92,7 @@ function OnTheWayCard({
       <View style={styles.clip}>
         <VehicleCover photoId={vehicle.coverPhotoId} style={styles.cover} />
         <View style={styles.chip}>
-          <StatusChip status={vehicle.status} onPhoto />
+          <StatusChip status={vehicle.status} />
         </View>
         {position ? (
           // Dark photo glass, like the status chip and the vehicle page's photo count.

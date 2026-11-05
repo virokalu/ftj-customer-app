@@ -51,6 +51,12 @@ const light = {
   statusArrivedBg: "#2B2B2D",
   statusDelivered: "#166534",
   statusDeliveredBg: "#E3F2E8",
+  // Shipped and Arrived on Liquid Glass: their solid colours are button-like (white on crimson,
+  // white on charcoal), so on see-through glass the text takes the status colour instead.
+  statusShippedGlass: "#A3102A",
+  statusShippedGlassBg: "rgba(179,18,43,0.16)",
+  statusArrivedGlass: "#2B2B2D",
+  statusArrivedGlassBg: "rgba(43,43,45,0.14)",
   // The little car in the sign-in loader.
   tyre: "#2A2A30",
   hub: "#C9C9CE",
@@ -97,6 +103,10 @@ const dark = {
   statusArrivedBg: "#E4E4E7",
   statusDelivered: "#7BD39A",
   statusDeliveredBg: "#14291C",
+  statusShippedGlass: "#FFB3BF", // light crimson: 7:1 on the crimson glass over a card
+  statusShippedGlassBg: "rgba(200,30,58,0.4)",
+  statusArrivedGlass: "#F4F4F5",
+  statusArrivedGlassBg: "rgba(228,228,231,0.22)",
   tyre: "#050506",
   hub: "#8A8A93",
   glass: "#2C3A52",

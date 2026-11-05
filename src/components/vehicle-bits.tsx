@@ -71,32 +71,30 @@ export function VehicleCover({
   );
 }
 
-/**
- * The status pill. Liquid Glass on iOS 26+: `onPhoto` is the dark glass with white text used
- * on the vehicle page photo; on a card the glass is tinted with the status colour. Elsewhere the
- * solid status colours.
- */
-// Dark glass with a dark tint, so the white text stays readable even over bright photos.
+// Dark glass with a dark tint, so white text stays readable even over bright photos (the photo
+// count and card position chips).
 export const PHOTO_GLASS_TINT = "rgba(0,0,0,0.35)";
 
-export function StatusChip({ status, onPhoto }: { status: VehicleStatus; onPhoto?: boolean }) {
+/**
+ * The status pill, the same everywhere (cards, Home, the vehicle page photo). Liquid Glass on
+ * iOS 26+, tinted with the status colour. Elsewhere the solid status colours.
+ */
+export function StatusChip({ status }: { status: VehicleStatus }) {
   const t = useTheme();
   const tone = statusTone(status, t);
-  const fg = onPhoto && liquidGlass ? "#FFFFFF" : tone.fg;
+  // On glass: the status colour, see-through (about 65%), so the chip reads as tinted glass.
+  // Shipped and Arrived have their own glass colours (see the theme): text in the status colour
+  // over a light tint of it, like the other statuses.
+  const glass =
+    status === "SHIPPED"
+      ? { fg: t.statusShippedGlass, tint: t.statusShippedGlassBg }
+      : status === "ARRIVED"
+        ? { fg: t.statusArrivedGlass, tint: t.statusArrivedGlassBg }
+        : { fg: tone.fg, tint: `${tone.bg}A6` };
+  const fg = liquidGlass ? glass.fg : tone.fg;
   return (
     <View style={[styles.chip, { backgroundColor: liquidGlass ? "transparent" : tone.bg }]}>
-      {liquidGlass ? (
-        onPhoto ? (
-          <GlassLayer radius={999} scheme="dark" tint={PHOTO_GLASS_TINT} />
-        ) : (
-          // The status colour, see-through, so the chip reads as tinted glass: about 65%, and 40%
-          // for the strong Shipped and Arrived colours.
-          <GlassLayer
-            radius={999}
-            tint={`${tone.bg}${status === "SHIPPED" || status === "ARRIVED" ? "66" : "A6"}`}
-          />
-        )
-      ) : null}
+      {liquidGlass ? <GlassLayer radius={999} tint={glass.tint} /> : null}
       <View style={[styles.chipDot, { backgroundColor: fg }]} />
       <Text style={[styles.chipText, { color: fg }]}>{statusLabel[status]}</Text>
     </View>

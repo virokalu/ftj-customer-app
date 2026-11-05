@@ -123,7 +123,7 @@ export function PosterTile({ vehicle, width }: { vehicle: VehicleSummary; width:
           <Rect x="0" y="0" width="100%" height="100%" fill="url(#fade)" />
         </Svg>
         <View style={styles.posterChip}>
-          <StatusChip status={vehicle.status} onPhoto />
+          <StatusChip status={vehicle.status} />
         </View>
         <View style={styles.posterText}>
           <Text style={styles.posterName} numberOfLines={2}>

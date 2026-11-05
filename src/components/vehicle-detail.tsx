@@ -20,14 +20,13 @@ import { SegmentTrack } from "@/components/segment-track";
 import { JourneyIcon } from "@/components/journey-icons";
 import { PopButton, raised } from "@/components/ui";
 import { DocumentRowsSkeleton, PhotoGridSkeleton, TimelineSkeleton } from "@/components/skeleton";
-import { PHOTO_GLASS_TINT, PortTrack, VehicleCover } from "@/components/vehicle-bits";
+import { PHOTO_GLASS_TINT, PortTrack, StatusChip, VehicleCover } from "@/components/vehicle-bits";
 import { openDocument } from "@/features/documents/open-document";
 import {
   formatDate,
   journeyLine,
   journeyProgress,
   journeyStage,
-  statusLabel,
   vehicleName,
 } from "@/features/vehicles/status";
 import { documentLabels, nextStep, stepDate, stepLabel } from "@/features/vehicles/timeline";
@@ -109,16 +108,7 @@ export function Gallery({
 
       <View style={styles.galleryInfo} pointerEvents="none">
         <View style={styles.galleryChipRow}>
-          <View style={styles.galleryChip}>
-            <GlassLayer
-              radius={999}
-              scheme="dark"
-              tint={PHOTO_GLASS_TINT}
-              fallback={<View style={[StyleSheet.absoluteFill, styles.galleryChipFallback]} />}
-            />
-            <View style={styles.galleryChipDot} />
-            <Text style={styles.galleryChipText}>{statusLabel[vehicle.status]}</Text>
-          </View>
+          <StatusChip status={vehicle.status} />
           {photos.length > 1 ? (
             <View style={styles.count}>
               <GlassLayer
@@ -834,23 +824,6 @@ const styles = StyleSheet.create({
   galleryFade: { position: "absolute", left: 0, right: 0, bottom: 0, height: "60%" },
   galleryInfo: { position: "absolute", left: spacing.md, right: spacing.md, bottom: spacing.md, gap: 6 },
   galleryChipRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  galleryChip: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    paddingHorizontal: 11,
-    paddingVertical: 5,
-    borderRadius: 999,
-  },
-  // Photo chips without Liquid Glass: the frosted white and dark pills used before.
-  galleryChipFallback: {
-    borderRadius: 999,
-    backgroundColor: "rgba(255,255,255,0.22)",
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: "rgba(255,255,255,0.35)",
-  },
-  galleryChipDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: "#FFFFFF" },
-  galleryChipText: { color: "#FFFFFF", fontSize: 12, fontWeight: "600" },
   galleryName: { color: "#FFFFFF", fontSize: 26, fontWeight: "700" },
   galleryDetails: { color: "rgba(255,255,255,0.85)", fontSize: 13, fontWeight: "500" },
   count: {
