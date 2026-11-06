@@ -9,7 +9,7 @@ import { fromServerTheme, setAppearance } from "@/features/account/appearance";
 import { updateMeKey } from "@/features/account/hooks";
 import { useAlerts, useMe } from "@/features/vehicles/hooks";
 
-// Duotone icon for a tab; GlassTabBar passes the colour (crimson when selected, grey otherwise).
+// Outline icon for a tab (solid when selected); GlassTabBar passes the colour (crimson when selected, grey otherwise).
 function tabIcon(name: TabIconName) {
   return function Icon({ focused, color, size }: { focused: boolean; color: ColorValue; size: number }) {
     return <TabIcon name={name} focused={focused} color={String(color)} size={size} />;

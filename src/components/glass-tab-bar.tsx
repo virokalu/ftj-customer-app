@@ -21,7 +21,7 @@ const RISE = 8; // how far the selected icon moves up to make room for its label
 /**
  * Floating glass tab bar (Liquid Glass on iOS 26+) with "label reveal" switching (chosen in the tab-bar lab): a frosted
  * bar above the home indicator showing icons only; the selected tab's icon moves up, turns solid
- * crimson, and its name slides in underneath. The others stay centred with duotone icons.
+ * crimson, and its name slides in underneath. The others stay centred with outline icons.
  * Smooth timed movement, no bounce; instant under Reduce Motion. Badges (the Updates count) come
  * from each screen's `tabBarBadge` option and move with the icon.
  */

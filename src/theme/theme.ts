@@ -5,22 +5,22 @@ import { Appearance, useColorScheme } from "react-native";
 // Every text/background pair below meets WCAG AA (4.5:1) in its theme. Crimson is split in
 // two: `accent` for fills (white text on it) and `accentText` for crimson-coloured text,
 // because no single crimson passes both ways on a dark background.
-// Light mode is softened, not pure white: off-white cards on a light grey page, so large areas
-// don't glare. Muted text is a shade darker to stay 4.5:1 on the deeper page.
+// Light mode follows iOS grouped lists (Settings, Wallet): white cards on a light grey page, so
+// cards stand clearly off the page without a glaring all-white screen.
 const light = {
-  background: "#EFEFF3",
-  surface: "#E9E9ED",
-  // Card lists (My vehicles): a tinted page with raised off-white cards, like iOS grouped lists.
-  canvas: "#E6E6EB",
-  card: "#F3F3F6",
-  control: "#DCDCE2", // search fields and segmented controls sitting on `canvas`
-  controlSelected: "#F3F3F6",
-  controlOnCard: "#E3E3E8", // segmented control track inside a card (Appearance)
+  background: "#F2F2F7",
+  surface: "#FFFFFF",
+  // Card lists (My vehicles): the grey grouped page with raised white cards.
+  canvas: "#F2F2F7",
+  card: "#FFFFFF",
+  control: "#E3E3E8", // search fields and segmented controls sitting on `canvas`
+  controlSelected: "#FFFFFF",
+  controlOnCard: "#EBEBF0", // segmented control track inside a card (Appearance)
   // Neutral tile behind every icon (alerts, settings rows, shortcuts); the icon carries the colour.
-  iconTile: "#E9E9EE",
-  border: "#D9D9DF",
+  iconTile: "#F0F0F4",
+  border: "#E2E2E7",
   text: "#18181B",
-  textMuted: "#5E5E67",
+  textMuted: "#6C6C72",
   accent: "#B3122B", // crimson
   accentText: "#B3122B",
   accentSoft: "#FBE7EA", // tinted backdrop behind accent icons

@@ -1,7 +1,7 @@
-import Svg, { Circle, G, Path, Rect } from "react-native-svg";
+import Svg, { Circle, Path, Rect } from "react-native-svg";
 
-// Tab bar icons, "Duotone" set (chosen in the tab-bar lab): an outline with a soft tinted fill
-// when not selected, fully solid when selected. 24-unit grid, drawn in one colour.
+// Tab bar icons: a plain outline when not selected (no tinted fill, so they stay crisp on the
+// glass), fully solid when selected. 24-unit grid, drawn in one colour.
 
 export type TabIconName = "home" | "vehicles" | "stock" | "updates" | "account";
 
@@ -18,12 +18,12 @@ export function TabIcon({
 }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24">
-      {focused ? <Solid name={name} color={color} /> : <Duotone name={name} color={color} />}
+      {focused ? <Solid name={name} color={color} /> : <Outline name={name} color={color} />}
     </Svg>
   );
 }
 
-function Duotone({ name, color }: { name: TabIconName; color: string }) {
+function Outline({ name, color }: { name: TabIconName; color: string }) {
   const line = {
     stroke: color,
     strokeWidth: 1.9,
@@ -36,11 +36,6 @@ function Duotone({ name, color }: { name: TabIconName; color: string }) {
       return (
         <>
           <Path
-            d="M4 10.4 12 4l8 6.4V19a1.6 1.6 0 0 1-1.6 1.6H5.6A1.6 1.6 0 0 1 4 19z"
-            fill={color}
-            opacity={0.22}
-          />
-          <Path
             d="M4 10.4 12 4l8 6.4V19a1.6 1.6 0 0 1-1.6 1.6H15v-5.2H9v5.2H5.6A1.6 1.6 0 0 1 4 19z"
             {...line}
           />
@@ -49,10 +44,6 @@ function Duotone({ name, color }: { name: TabIconName; color: string }) {
     case "vehicles":
       return (
         <>
-          <G fill={color} opacity={0.22}>
-            <Rect x={3.5} y={12.8} width={17} height={4.6} rx={1.6} />
-            <Path d="M6.8 8.5 5 13.1h14l-1.8-4.6z" />
-          </G>
           <Path d="M5 16.5v-3.4l1.8-4.6A2 2 0 0 1 8.7 7.2h6.6a2 2 0 0 1 1.9 1.3l1.8 4.6v3.4" {...line} />
           <Rect x={3.5} y={12.8} width={17} height={4.6} rx={1.6} {...line} />
           <Path d="M6.5 17.4v1.8M17.5 17.4v1.8" {...line} />
@@ -61,7 +52,6 @@ function Duotone({ name, color }: { name: TabIconName; color: string }) {
     case "stock":
       return (
         <>
-          <Path d="M5.6 11v8.4h12.8V11z" fill={color} opacity={0.22} />
           <Path d="M4.5 9.6 6 4.6h12l1.5 5" {...line} />
           <Path d="M4.5 9.6a2.5 2.5 0 0 0 5 0 2.5 2.5 0 0 0 5 0 2.5 2.5 0 0 0 5 0" {...line} />
           <Path d="M5.6 12v7.4h12.8V12" {...line} />
@@ -71,7 +61,6 @@ function Duotone({ name, color }: { name: TabIconName; color: string }) {
     case "updates":
       return (
         <>
-          <Path d="M6.2 16.4V11a5.8 5.8 0 0 1 11.6 0v5.4l1.5 1.8H4.7z" fill={color} opacity={0.22} />
           <Path d="M6.2 16.4V11a5.8 5.8 0 0 1 11.6 0v5.4l1.5 1.8H4.7z" {...line} />
           <Path d="M10 20.6a2.1 2.1 0 0 0 4 0" {...line} />
         </>
@@ -79,10 +68,6 @@ function Duotone({ name, color }: { name: TabIconName; color: string }) {
     case "account":
       return (
         <>
-          <G fill={color} opacity={0.22}>
-            <Circle cx={12} cy={8.2} r={3.8} />
-            <Path d="M4.8 20.2c1.1-3.6 3.9-5.3 7.2-5.3s6.1 1.7 7.2 5.3z" />
-          </G>
           <Circle cx={12} cy={8.2} r={3.8} {...line} />
           <Path d="M4.8 20.2c1.1-3.6 3.9-5.3 7.2-5.3s6.1 1.7 7.2 5.3" {...line} />
         </>
