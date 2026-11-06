@@ -5,20 +5,22 @@ import { Appearance, useColorScheme } from "react-native";
 // Every text/background pair below meets WCAG AA (4.5:1) in its theme. Crimson is split in
 // two: `accent` for fills (white text on it) and `accentText` for crimson-coloured text,
 // because no single crimson passes both ways on a dark background.
+// Light mode is softened, not pure white: off-white cards on a light grey page, so large areas
+// don't glare. Muted text is a shade darker to stay 4.5:1 on the deeper page.
 const light = {
-  background: "#FFFFFF",
-  surface: "#F6F6F7",
-  // Card lists (My vehicles): a tinted page with raised white cards, like iOS grouped lists.
-  canvas: "#F2F2F5",
-  card: "#FFFFFF",
-  control: "#E6E6EB", // search fields and segmented controls sitting on `canvas`
-  controlSelected: "#FFFFFF",
-  controlOnCard: "#E6E6EB", // segmented control track inside a card (Appearance)
+  background: "#EFEFF3",
+  surface: "#E9E9ED",
+  // Card lists (My vehicles): a tinted page with raised off-white cards, like iOS grouped lists.
+  canvas: "#E6E6EB",
+  card: "#F3F3F6",
+  control: "#DCDCE2", // search fields and segmented controls sitting on `canvas`
+  controlSelected: "#F3F3F6",
+  controlOnCard: "#E3E3E8", // segmented control track inside a card (Appearance)
   // Neutral tile behind every icon (alerts, settings rows, shortcuts); the icon carries the colour.
-  iconTile: "#F0F0F3",
-  border: "#E4E4E7",
+  iconTile: "#E9E9EE",
+  border: "#D9D9DF",
   text: "#18181B",
-  textMuted: "#6A6A73",
+  textMuted: "#5E5E67",
   accent: "#B3122B", // crimson
   accentText: "#B3122B",
   accentSoft: "#FBE7EA", // tinted backdrop behind accent icons
